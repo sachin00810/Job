@@ -1,0 +1,93 @@
+import Link from "next/link";
+import { Briefcase } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In | appname",
+  description: "Sign in to your appname account.",
+};
+
+export default function SignInPage() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-16">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-2">
+            <Briefcase className="h-6 w-6 text-indigo-600" />
+            <span className="font-bold text-xl text-indigo-600">appname</span>
+          </Link>
+          <h1 className="mt-6 text-2xl font-bold text-slate-900">
+            Welcome back
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Sign in to your account
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+          <form className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Email address
+              </label>
+              <input
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Password
+                </label>
+                <a href="#" className="text-xs text-indigo-600 hover:underline">
+                  Forgot password?
+                </a>
+              </div>
+              <input
+                type="password"
+                autoComplete="current-password"
+                placeholder="••••••••"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors"
+            >
+              Sign in
+            </button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-slate-100 text-center text-sm text-slate-600">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/auth/signup"
+              className="text-indigo-600 font-semibold hover:underline"
+            >
+              Sign up free
+            </Link>
+          </div>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-slate-400">
+          By signing in you agree to our{" "}
+          <Link href="/terms" className="hover:underline">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="hover:underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+      </div>
+    </div>
+  );
+}
