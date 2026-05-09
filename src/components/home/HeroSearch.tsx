@@ -1,11 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search, MapPin, Briefcase, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function HeroSearch() {
+  const router = useRouter();
   const [tab, setTab] = useState<"jobs" | "rooms">("jobs");
+
+  const [jobKeyword, setJobKeyword] = useState("");
+  const [jobLocation, setJobLocation] = useState("");
+  const [roomLocation, setRoomLocation] = useState("");
+  const [roomType, setRoomType] = useState("");
+
+  function handleJobSearch() {
+    const params = new URLSearchParams();
+    if (jobKeyword.trim()) params.set("q", jobKeyword.trim());
+    if (jobLocation.trim()) params.set("location", jobLocation.trim());
+    router.push(`/jobs${params.size ? `?${params}` : ""}`);
+  }
+
+  function handleRoomSearch() {
+    const params = new URLSearchParams();
+    if (roomLocation.trim()) params.set("location", roomLocation.trim());
+    if (roomType) params.set("type", roomType);
+    router.push(`/rooms${params.size ? `?${params}` : ""}`);
+  }
 
   return (
     <div className="mt-8 max-w-4xl mx-auto">
@@ -45,6 +66,9 @@ export function HeroSearch() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
               <input
                 type="text"
+                value={jobKeyword}
+                onChange={(e) => setJobKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleJobSearch()}
                 placeholder="Job title, keywords, or company"
                 className="w-full pl-9 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
@@ -53,11 +77,17 @@ export function HeroSearch() {
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
               <input
                 type="text"
+                value={jobLocation}
+                onChange={(e) => setJobLocation(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleJobSearch()}
                 placeholder="City or suburb"
                 className="w-full pl-9 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors whitespace-nowrap">
+            <button
+              onClick={handleJobSearch}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors whitespace-nowrap"
+            >
               Search Jobs
             </button>
           </div>
@@ -67,18 +97,28 @@ export function HeroSearch() {
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
               <input
                 type="text"
+                value={roomLocation}
+                onChange={(e) => setRoomLocation(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleRoomSearch()}
                 placeholder="Suburb or city"
                 className="w-full pl-9 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
-            <select className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+            <select
+              value={roomType}
+              onChange={(e) => setRoomType(e.target.value)}
+              className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            >
               <option value="">Any type</option>
               <option value="studio">Studio</option>
               <option value="private-room">Private room</option>
               <option value="shared-room">Shared room</option>
               <option value="whole-place">Whole place</option>
             </select>
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors whitespace-nowrap">
+            <button
+              onClick={handleRoomSearch}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors whitespace-nowrap"
+            >
               Search Rooms
             </button>
           </div>
