@@ -1,7 +1,23 @@
-import { jobs } from "@/data/jobs";
+"use client";
+
+import { useState } from "react";
+import { jobs as allJobs } from "@/data/jobs";
 import JobCard from "@/components/jobs/JobCard";
+import type { Job } from "@/types";
+
+type SortKey = "recent" | "salary-desc" | "salary-asc";
+
+function sorted(jobs: Job[], key: SortKey): Job[] {
+  const copy = [...jobs];
+  if (key === "salary-desc") return copy.sort((a, b) => b.salaryMax - a.salaryMax);
+  if (key === "salary-asc") return copy.sort((a, b) => a.salaryMin - b.salaryMin);
+  return copy.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
+}
 
 export default function JobsPage() {
+  const [sort, setSort] = useState<SortKey>("recent");
+  const jobs = sorted(allJobs, sort);
+
   return (
     <>
       {/* Header strip */}
@@ -9,7 +25,7 @@ export default function JobsPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold">Find a Job</h1>
           <p className="mt-2 text-indigo-100">
-            {jobs.length} jobs available across Australia
+            {allJobs.length} jobs available across Australia
           </p>
         </div>
       </section>
@@ -35,10 +51,14 @@ export default function JobsPage() {
                 <p className="text-sm text-slate-600">
                   Showing {jobs.length} jobs
                 </p>
-                <select className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <option>Most recent</option>
-                  <option>Salary: high to low</option>
-                  <option>Salary: low to high</option>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as SortKey)}
+                  className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="recent">Most recent</option>
+                  <option value="salary-desc">Salary: high to low</option>
+                  <option value="salary-asc">Salary: low to high</option>
                 </select>
               </div>
 

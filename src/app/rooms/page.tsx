@@ -1,7 +1,23 @@
-import { rooms } from "@/data/rooms";
+"use client";
+
+import { useState } from "react";
+import { rooms as allRooms } from "@/data/rooms";
 import RoomCard from "@/components/rooms/RoomCard";
+import type { Room } from "@/types";
+
+type SortKey = "recent" | "price-asc" | "price-desc";
+
+function sorted(rooms: Room[], key: SortKey): Room[] {
+  const copy = [...rooms];
+  if (key === "price-asc") return copy.sort((a, b) => a.rentWeekly - b.rentWeekly);
+  if (key === "price-desc") return copy.sort((a, b) => b.rentWeekly - a.rentWeekly);
+  return copy.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
+}
 
 export default function RoomsPage() {
+  const [sort, setSort] = useState<SortKey>("recent");
+  const rooms = sorted(allRooms, sort);
+
   return (
     <>
       {/* Header strip */}
@@ -9,7 +25,7 @@ export default function RoomsPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold">Find Your Room</h1>
           <p className="mt-2 text-amber-50">
-            {rooms.length} rooms available across Australia
+            {allRooms.length} rooms available across Australia
           </p>
         </div>
       </section>
@@ -35,10 +51,14 @@ export default function RoomsPage() {
                 <p className="text-sm text-slate-600">
                   Showing {rooms.length} rooms
                 </p>
-                <select className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option>Most recent</option>
-                  <option>Price: low to high</option>
-                  <option>Price: high to low</option>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as SortKey)}
+                  className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="recent">Most recent</option>
+                  <option value="price-asc">Price: low to high</option>
+                  <option value="price-desc">Price: high to low</option>
                 </select>
               </div>
 
