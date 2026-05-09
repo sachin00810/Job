@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { jobs } from "@/data/jobs";
 import { formatCurrency, formatDateRelative } from "@/lib/utils";
 import JobCard from "@/components/jobs/JobCard";
+import { ApplyModal } from "@/components/jobs/ApplyModal";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
@@ -133,9 +134,7 @@ export default function JobDetailPage({ params }: { params: { slug: string } }) 
         <div className="space-y-6">
           <div className="sticky top-24">
             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-              <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg text-lg font-medium text-center transition-colors">
-                Apply for this job
-              </button>
+              <ApplyModal jobTitle={job.title} companyName={job.company.name} />
               <button className="mt-3 w-full border border-slate-200 hover:bg-slate-50 text-slate-700 py-3 px-4 rounded-lg font-medium flex justify-center items-center gap-2 transition-colors">
                 <Heart className="h-5 w-5 text-slate-400" />
                 Save job
