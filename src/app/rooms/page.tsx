@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { rooms as allRooms } from "@/data/rooms";
 import RoomCard from "@/components/rooms/RoomCard";
 import type { Room } from "@/types";
@@ -14,9 +15,31 @@ function sorted(rooms: Room[], key: SortKey): Room[] {
   return copy.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
 }
 
-export default function RoomsPage() {
+function filtered(rooms: Room[], location: string, type: string): Room[] {
+  let result = rooms;
+  if (location) {
+    const ll = location.toLowerCase();
+    result = result.filter(
+      (r) =>
+        r.suburb.toLowerCase().includes(ll) ||
+        r.city.toLowerCase().includes(ll) ||
+        r.state.toLowerCase().includes(ll)
+    );
+  }
+  if (type) {
+    result = result.filter((r) => r.type === type);
+  }
+  return result;
+}
+
+function RoomsContent() {
+  const searchParams = useSearchParams();
+  const location = searchParams.get("location") ?? "";
+  const type = searchParams.get("type") ?? "";
   const [sort, setSort] = useState<SortKey>("recent");
-  const rooms = sorted(allRooms, sort);
+
+  const rooms = sorted(filtered(allRooms, location, type), sort);
+  const hasFilter = location || type;
 
   return (
     <>
@@ -25,7 +48,9 @@ export default function RoomsPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold">Find Your Room</h1>
           <p className="mt-2 text-amber-50">
-            {allRooms.length} rooms available across Australia
+            {hasFilter
+              ? `${rooms.length} result${rooms.length !== 1 ? "s" : ""}${location ? ` in ${location}` : ""}${type ? ` · ${type.replace("-", " ")}` : ""}`
+              : `${allRooms.length} rooms available across Australia`}
           </p>
         </div>
       </section>
@@ -49,7 +74,7 @@ export default function RoomsPage() {
               {/* Sort bar */}
               <div className="flex justify-between items-center mb-6">
                 <p className="text-sm text-slate-600">
-                  Showing {rooms.length} rooms
+                  Showing {rooms.length} {rooms.length === 1 ? "room" : "rooms"}
                 </p>
                 <select
                   value={sort}
@@ -62,16 +87,39 @@ export default function RoomsPage() {
                 </select>
               </div>
 
-              {/* Rooms grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {rooms.map((room) => (
-                  <RoomCard key={room.id} room={room} />
-                ))}
-              </div>
+              {/* Rooms grid or empty state */}
+              {rooms.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {rooms.map((room) => (
+                    <RoomCard key={room.id} room={room} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-slate-500 text-lg">No rooms found.</p>
+                  <p className="text-slate-400 text-sm mt-1">Try a different suburb, city, or room type.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </section>
     </>
+  );
+}
+
+export default function RoomsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-amber-500 py-12 px-4">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold text-white">Find Your Room</h1>
+          </div>
+        </div>
+      }
+    >
+      <RoomsContent />
+    </Suspense>
   );
 }

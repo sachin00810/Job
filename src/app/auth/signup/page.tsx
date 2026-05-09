@@ -36,6 +36,7 @@ export default function SignUpPage() {
                 type="text"
                 autoComplete="name"
                 placeholder="Jane Smith"
+                required
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
@@ -48,6 +49,7 @@ export default function SignUpPage() {
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
+                required
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
@@ -60,6 +62,8 @@ export default function SignUpPage() {
                 type="password"
                 autoComplete="new-password"
                 placeholder="Min. 8 characters"
+                required
+                minLength={8}
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
@@ -72,6 +76,8 @@ export default function SignUpPage() {
                 type="password"
                 autoComplete="new-password"
                 placeholder="••••••••"
+                required
+                minLength={8}
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>

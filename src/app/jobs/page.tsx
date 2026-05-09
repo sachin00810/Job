@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { jobs as allJobs } from "@/data/jobs";
 import JobCard from "@/components/jobs/JobCard";
 import type { Job } from "@/types";
@@ -14,9 +15,37 @@ function sorted(jobs: Job[], key: SortKey): Job[] {
   return copy.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
 }
 
-export default function JobsPage() {
+function filtered(jobs: Job[], q: string, location: string): Job[] {
+  let result = jobs;
+  if (q) {
+    const lq = q.toLowerCase();
+    result = result.filter(
+      (j) =>
+        j.title.toLowerCase().includes(lq) ||
+        j.company.name.toLowerCase().includes(lq) ||
+        j.description.toLowerCase().includes(lq) ||
+        j.skills.some((s) => s.toLowerCase().includes(lq))
+    );
+  }
+  if (location) {
+    const ll = location.toLowerCase();
+    result = result.filter(
+      (j) =>
+        j.locationCity.toLowerCase().includes(ll) ||
+        j.locationState.toLowerCase().includes(ll)
+    );
+  }
+  return result;
+}
+
+function JobsContent() {
+  const searchParams = useSearchParams();
+  const q = searchParams.get("q") ?? "";
+  const location = searchParams.get("location") ?? "";
   const [sort, setSort] = useState<SortKey>("recent");
-  const jobs = sorted(allJobs, sort);
+
+  const jobs = sorted(filtered(allJobs, q, location), sort);
+  const hasFilter = q || location;
 
   return (
     <>
@@ -25,7 +54,9 @@ export default function JobsPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold">Find a Job</h1>
           <p className="mt-2 text-indigo-100">
-            {allJobs.length} jobs available across Australia
+            {hasFilter
+              ? `${jobs.length} result${jobs.length !== 1 ? "s" : ""}${q ? ` for "${q}"` : ""}${location ? ` in ${location}` : ""}`
+              : `${allJobs.length} jobs available across Australia`}
           </p>
         </div>
       </section>
@@ -49,7 +80,7 @@ export default function JobsPage() {
               {/* Sort bar */}
               <div className="flex justify-between items-center mb-6">
                 <p className="text-sm text-slate-600">
-                  Showing {jobs.length} jobs
+                  Showing {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
                 </p>
                 <select
                   value={sort}
@@ -62,16 +93,39 @@ export default function JobsPage() {
                 </select>
               </div>
 
-              {/* Jobs grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {jobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
-                ))}
-              </div>
+              {/* Jobs grid or empty state */}
+              {jobs.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {jobs.map((job) => (
+                    <JobCard key={job.id} job={job} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-slate-500 text-lg">No jobs found.</p>
+                  <p className="text-slate-400 text-sm mt-1">Try a different keyword or location.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </section>
     </>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-indigo-600 py-12 px-4">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold text-white">Find a Job</h1>
+          </div>
+        </div>
+      }
+    >
+      <JobsContent />
+    </Suspense>
   );
 }

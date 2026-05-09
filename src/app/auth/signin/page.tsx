@@ -36,6 +36,7 @@ export default function SignInPage() {
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
+                required
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
@@ -45,14 +46,15 @@ export default function SignInPage() {
                 <label className="block text-sm font-medium text-slate-700">
                   Password
                 </label>
-                <a href="#" className="text-xs text-indigo-600 hover:underline">
+                <Link href="/auth/forgot-password" className="text-xs text-indigo-600 hover:underline">
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <input
                 type="password"
                 autoComplete="current-password"
                 placeholder="••••••••"
+                required
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
