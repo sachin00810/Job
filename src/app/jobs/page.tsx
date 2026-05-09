@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { jobs as allJobs } from "@/data/jobs";
 import JobCard from "@/components/jobs/JobCard";
+import { Pagination } from "@/components/ui/Pagination";
 import type { Job } from "@/types";
 
 type SortKey = "recent" | "salary-desc" | "salary-asc";
@@ -231,10 +232,19 @@ function JobsContent() {
   const [sort, setSort] = useState<SortKey>("recent");
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const jobs = sorted(applyFilters(allJobs, q, location, filters), sort);
+  const PAGE_SIZE = 6;
+  const allFiltered = sorted(applyFilters(allJobs, q, location, filters), sort);
+  const totalPages = Math.ceil(allFiltered.length / PAGE_SIZE);
+  const jobs = allFiltered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const hasSearch = q || location;
   const filterCount = activeFilterCount(filters);
+
+  function handleFilterChange(f: Filters) {
+    setFilters(f);
+    setPage(1);
+  }
 
   return (
     <>
@@ -260,8 +270,8 @@ function JobsContent() {
               <div className="bg-white rounded-xl p-5 sticky top-20 shadow-sm border border-slate-200">
                 <FilterPanel
                   filters={filters}
-                  onChange={setFilters}
-                  onClear={() => setFilters(EMPTY_FILTERS)}
+                  onChange={handleFilterChange}
+                  onClear={() => handleFilterChange(EMPTY_FILTERS)}
                 />
               </div>
             </aside>
@@ -272,7 +282,7 @@ function JobsContent() {
               <div className="flex justify-between items-center mb-6 gap-3">
                 <div className="flex items-center gap-3">
                   <p className="text-sm text-slate-600">
-                    Showing {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
+                    Showing {allFiltered.length} {allFiltered.length === 1 ? "job" : "jobs"}
                   </p>
                   {/* Mobile filter button */}
                   <button
@@ -349,19 +359,26 @@ function JobsContent() {
               )}
 
               {/* Jobs grid or empty state */}
-              {jobs.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {jobs.map((job) => (
-                    <JobCard key={job.id} job={job} />
-                  ))}
-                </div>
+              {allFiltered.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {jobs.map((job) => (
+                      <JobCard key={job.id} job={job} />
+                    ))}
+                  </div>
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  />
+                </>
               ) : (
                 <div className="text-center py-20">
                   <p className="text-slate-500 text-lg">No jobs found.</p>
                   <p className="text-slate-400 text-sm mt-1">Try adjusting your filters or search terms.</p>
                   {filterCount > 0 && (
                     <button
-                      onClick={() => setFilters(EMPTY_FILTERS)}
+                      onClick={() => handleFilterChange(EMPTY_FILTERS)}
                       className="mt-4 text-sm text-indigo-600 hover:underline font-medium"
                     >
                       Clear all filters
@@ -388,8 +405,8 @@ function JobsContent() {
             <div className="p-4">
               <FilterPanel
                 filters={filters}
-                onChange={setFilters}
-                onClear={() => setFilters(EMPTY_FILTERS)}
+                onChange={handleFilterChange}
+                onClear={() => handleFilterChange(EMPTY_FILTERS)}
               />
             </div>
             <div className="sticky bottom-0 p-4 bg-white border-t border-slate-200">
@@ -397,7 +414,7 @@ function JobsContent() {
                 onClick={() => setMobileFiltersOpen(false)}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors"
               >
-                Show {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
+                Show {allFiltered.length} {allFiltered.length === 1 ? "job" : "jobs"}
               </button>
             </div>
           </div>

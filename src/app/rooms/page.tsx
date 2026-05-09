@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { rooms as allRooms } from "@/data/rooms";
 import RoomCard from "@/components/rooms/RoomCard";
+import { Pagination } from "@/components/ui/Pagination";
 import type { Room } from "@/types";
 
 type SortKey = "recent" | "price-asc" | "price-desc";
@@ -186,10 +187,19 @@ function RoomsContent() {
   const [sort, setSort] = useState<SortKey>("recent");
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const rooms = sorted(applyFilters(allRooms, location, urlType, filters), sort);
+  const PAGE_SIZE = 6;
+  const allFiltered = sorted(applyFilters(allRooms, location, urlType, filters), sort);
+  const totalPages = Math.ceil(allFiltered.length / PAGE_SIZE);
+  const rooms = allFiltered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const hasSearch = location || urlType;
   const filterCount = activeFilterCount(filters);
+
+  function handleFilterChange(f: Filters) {
+    setFilters(f);
+    setPage(1);
+  }
 
   return (
     <>
@@ -215,8 +225,8 @@ function RoomsContent() {
               <div className="bg-white rounded-xl p-5 sticky top-20 shadow-sm border border-slate-200">
                 <FilterPanel
                   filters={filters}
-                  onChange={setFilters}
-                  onClear={() => setFilters(EMPTY_FILTERS)}
+                  onChange={handleFilterChange}
+                  onClear={() => handleFilterChange(EMPTY_FILTERS)}
                 />
               </div>
             </aside>
@@ -227,7 +237,7 @@ function RoomsContent() {
               <div className="flex justify-between items-center mb-6 gap-3">
                 <div className="flex items-center gap-3">
                   <p className="text-sm text-slate-600">
-                    Showing {rooms.length} {rooms.length === 1 ? "room" : "rooms"}
+                    Showing {allFiltered.length} {allFiltered.length === 1 ? "room" : "rooms"}
                   </p>
                   <button
                     onClick={() => setMobileFiltersOpen(true)}
@@ -299,19 +309,26 @@ function RoomsContent() {
               )}
 
               {/* Rooms grid or empty state */}
-              {rooms.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {rooms.map((room) => (
-                    <RoomCard key={room.id} room={room} />
-                  ))}
-                </div>
+              {allFiltered.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {rooms.map((room) => (
+                      <RoomCard key={room.id} room={room} />
+                    ))}
+                  </div>
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  />
+                </>
               ) : (
                 <div className="text-center py-20">
                   <p className="text-slate-500 text-lg">No rooms found.</p>
                   <p className="text-slate-400 text-sm mt-1">Try adjusting your filters or search terms.</p>
                   {filterCount > 0 && (
                     <button
-                      onClick={() => setFilters(EMPTY_FILTERS)}
+                      onClick={() => handleFilterChange(EMPTY_FILTERS)}
                       className="mt-4 text-sm text-amber-600 hover:underline font-medium"
                     >
                       Clear all filters
@@ -338,8 +355,8 @@ function RoomsContent() {
             <div className="p-4">
               <FilterPanel
                 filters={filters}
-                onChange={setFilters}
-                onClear={() => setFilters(EMPTY_FILTERS)}
+                onChange={handleFilterChange}
+                onClear={() => handleFilterChange(EMPTY_FILTERS)}
               />
             </div>
             <div className="sticky bottom-0 p-4 bg-white border-t border-slate-200">
@@ -347,7 +364,7 @@ function RoomsContent() {
                 onClick={() => setMobileFiltersOpen(false)}
                 className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-xl transition-colors"
               >
-                Show {rooms.length} {rooms.length === 1 ? "room" : "rooms"}
+                Show {allFiltered.length} {allFiltered.length === 1 ? "room" : "rooms"}
               </button>
             </div>
           </div>
