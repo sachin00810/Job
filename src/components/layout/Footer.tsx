@@ -85,19 +85,19 @@ export function Footer() {
             &copy; 2025 appname. All rights reserved.
           </p>
           <div className="flex space-x-6">
-            <a href="#" className="text-slate-400 hover:text-white transition-colors">
+            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">
               <span className="sr-only">X (Twitter)</span>
               <X className="h-5 w-5" />
             </a>
-            <a href="#" className="text-slate-400 hover:text-white transition-colors">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">
               <span className="sr-only">Facebook</span>
               <FacebookIcon className="h-5 w-5" />
             </a>
-            <a href="#" className="text-slate-400 hover:text-white transition-colors">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">
               <span className="sr-only">Instagram</span>
               <InstagramIcon className="h-5 w-5" />
             </a>
-            <a href="#" className="text-slate-400 hover:text-white transition-colors">
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">
               <span className="sr-only">LinkedIn</span>
               <LinkedInIcon className="h-5 w-5" />
             </a>
