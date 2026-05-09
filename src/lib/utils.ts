@@ -18,6 +18,11 @@ export function formatRent(weekly: number, currency: string): string {
   return `${formatCurrency(weekly, currency)}/week`;
 }
 
+export function formatSalaryRange(min: number, max: number, currency: string): string {
+  const compact = (n: number) => `$${Math.round(n / 1000)}k`;
+  return `${compact(min)} – ${compact(max)} ${currency}`;
+}
+
 export function formatDateRelative(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
