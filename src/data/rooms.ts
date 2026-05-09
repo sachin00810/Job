@@ -10,7 +10,7 @@ export const rooms: Room[] = [
     rentWeekly: 450,
     bond: 1800,
     currency: 'AUD',
-    availableFrom: new Date(Date.now() + 7 * 86400000).toISOString(),
+    availableFrom: '2026-05-16T09:00:00.000Z',
     minStayMonths: 6,
     suburb: 'Surry Hills',
     city: 'Sydney',
@@ -33,7 +33,7 @@ export const rooms: Room[] = [
     ownerName: 'Sarah Jenkins',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
     featured: true,
-    postedAt: new Date(Date.now() - 2 * 86400000).toISOString()
+    postedAt: '2026-05-07T09:00:00.000Z'
   },
   {
     id: 'room-2',
@@ -44,7 +44,7 @@ export const rooms: Room[] = [
     rentWeekly: 550,
     bond: 2200,
     currency: 'AUD',
-    availableFrom: new Date(Date.now() + 14 * 86400000).toISOString(),
+    availableFrom: '2026-05-23T09:00:00.000Z',
     minStayMonths: 12,
     suburb: 'Fitzroy',
     city: 'Melbourne',
@@ -68,7 +68,7 @@ export const rooms: Room[] = [
     ownerName: 'James Chen',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
     featured: false,
-    postedAt: new Date(Date.now() - 5 * 86400000).toISOString()
+    postedAt: '2026-05-04T09:00:00.000Z'
   },
   {
     id: 'room-3',
@@ -79,7 +79,7 @@ export const rooms: Room[] = [
     rentWeekly: 250,
     bond: 1000,
     currency: 'AUD',
-    availableFrom: new Date().toISOString(),
+    availableFrom: '2026-05-09T09:00:00.000Z',
     minStayMonths: 3,
     suburb: 'Bondi',
     city: 'Sydney',
@@ -102,7 +102,7 @@ export const rooms: Room[] = [
     ownerName: 'Liam O\'Connor',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Liam',
     featured: false,
-    postedAt: new Date(Date.now() - 10 * 86400000).toISOString()
+    postedAt: '2026-04-29T09:00:00.000Z'
   },
   {
     id: 'room-4',
@@ -113,7 +113,7 @@ export const rooms: Room[] = [
     rentWeekly: 650,
     bond: 2600,
     currency: 'AUD',
-    availableFrom: new Date(Date.now() + 21 * 86400000).toISOString(),
+    availableFrom: '2026-05-30T09:00:00.000Z',
     minStayMonths: 12,
     suburb: 'South Yarra',
     city: 'Melbourne',
@@ -138,7 +138,7 @@ export const rooms: Room[] = [
     ownerName: 'Property Management Co',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Property',
     featured: true,
-    postedAt: new Date(Date.now() - 1 * 86400000).toISOString()
+    postedAt: '2026-05-08T09:00:00.000Z'
   },
   {
     id: 'room-5',
@@ -149,7 +149,7 @@ export const rooms: Room[] = [
     rentWeekly: 300,
     bond: 1200,
     currency: 'AUD',
-    availableFrom: new Date(Date.now() + 5 * 86400000).toISOString(),
+    availableFrom: '2026-05-14T09:00:00.000Z',
     minStayMonths: 6,
     suburb: 'West End',
     city: 'Brisbane',
@@ -172,7 +172,7 @@ export const rooms: Room[] = [
     ownerName: 'Chloe Davies',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chloe',
     featured: false,
-    postedAt: new Date(Date.now() - 7 * 86400000).toISOString()
+    postedAt: '2026-05-02T09:00:00.000Z'
   },
   {
     id: 'room-6',
@@ -183,7 +183,7 @@ export const rooms: Room[] = [
     rentWeekly: 400,
     bond: 1600,
     currency: 'AUD',
-    availableFrom: new Date(Date.now() + 10 * 86400000).toISOString(),
+    availableFrom: '2026-05-19T09:00:00.000Z',
     minStayMonths: 6,
     suburb: 'Subiaco',
     city: 'Perth',
@@ -206,7 +206,7 @@ export const rooms: Room[] = [
     ownerName: 'Michael Rossi',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
     featured: false,
-    postedAt: new Date(Date.now() - 3 * 86400000).toISOString()
+    postedAt: '2026-05-06T09:00:00.000Z'
   },
   {
     id: 'room-7',
@@ -217,7 +217,7 @@ export const rooms: Room[] = [
     rentWeekly: 280,
     bond: 1120,
     currency: 'AUD',
-    availableFrom: new Date(Date.now() + 2 * 86400000).toISOString(),
+    availableFrom: '2026-05-11T09:00:00.000Z',
     minStayMonths: 6,
     suburb: 'North Adelaide',
     city: 'Adelaide',
@@ -241,7 +241,7 @@ export const rooms: Room[] = [
     ownerName: 'Eleanor Vance',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eleanor',
     featured: true,
-    postedAt: new Date(Date.now() - 8 * 86400000).toISOString()
+    postedAt: '2026-05-01T09:00:00.000Z'
   },
   {
     id: 'room-8',
@@ -252,7 +252,7 @@ export const rooms: Room[] = [
     rentWeekly: 650,
     bond: 2600,
     currency: 'AUD',
-    availableFrom: new Date(Date.now() + 30 * 86400000).toISOString(),
+    availableFrom: '2026-06-08T09:00:00.000Z',
     minStayMonths: 12,
     suburb: 'Surry Hills',
     city: 'Sydney',
@@ -276,7 +276,7 @@ export const rooms: Room[] = [
     ownerName: 'David Lee',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
     featured: true,
-    postedAt: new Date(Date.now() - 4 * 86400000).toISOString()
+    postedAt: '2026-05-05T09:00:00.000Z'
   },
   {
     id: 'room-9',
@@ -287,7 +287,7 @@ export const rooms: Room[] = [
     rentWeekly: 180,
     bond: 720,
     currency: 'AUD',
-    availableFrom: new Date().toISOString(),
+    availableFrom: '2026-05-09T09:00:00.000Z',
     minStayMonths: 3,
     suburb: 'Fitzroy',
     city: 'Melbourne',
@@ -310,7 +310,7 @@ export const rooms: Room[] = [
     ownerName: 'Alex Jones',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
     featured: false,
-    postedAt: new Date(Date.now() - 12 * 86400000).toISOString()
+    postedAt: '2026-04-27T09:00:00.000Z'
   },
   {
     id: 'room-10',
@@ -321,7 +321,7 @@ export const rooms: Room[] = [
     rentWeekly: 500,
     bond: 2000,
     currency: 'AUD',
-    availableFrom: new Date(Date.now() + 15 * 86400000).toISOString(),
+    availableFrom: '2026-05-24T09:00:00.000Z',
     minStayMonths: 6,
     suburb: 'Bondi',
     city: 'Sydney',
@@ -345,6 +345,6 @@ export const rooms: Room[] = [
     ownerName: 'Sophie Taylor',
     ownerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie',
     featured: true,
-    postedAt: new Date(Date.now() - 6 * 86400000).toISOString()
+    postedAt: '2026-05-03T09:00:00.000Z'
   }
 ];

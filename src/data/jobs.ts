@@ -6,7 +6,7 @@ export const jobs: Job[] = [
     id: 'job-1',
     slug: 'senior-software-engineer-sydney',
     title: 'Senior Software Engineer',
-    company: companies[0], // Coral Reef Tech
+    company: companies[0],
     description: 'Join our team to build scalable software solutions for ocean conservation and research. You will lead development of our data processing pipelines.',
     category: 'Technology',
     employmentType: 'full-time',
@@ -19,8 +19,8 @@ export const jobs: Job[] = [
     workMode: 'hybrid',
     visaSponsorship: true,
     skills: ['React', 'Node.js', 'TypeScript', 'AWS', 'PostgreSQL'],
-    postedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 28 * 86400000).toISOString(),
+    postedAt: '2026-05-07T09:00:00.000Z',
+    expiresAt: '2026-06-07T09:00:00.000Z',
     featured: true,
     views: 342
   },
@@ -28,7 +28,7 @@ export const jobs: Job[] = [
     id: 'job-2',
     slug: 'resort-manager-cairns',
     title: 'Resort Manager',
-    company: companies[1], // Great Barrier Hospitality
+    company: companies[1],
     description: 'Oversee daily operations of our premium coastal resort. Provide excellent guest experiences and manage staff effectively.',
     category: 'Hospitality',
     employmentType: 'full-time',
@@ -41,8 +41,8 @@ export const jobs: Job[] = [
     workMode: 'onsite',
     visaSponsorship: false,
     skills: ['Hospitality Management', 'Guest Relations', 'Team Leadership'],
-    postedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 25 * 86400000).toISOString(),
+    postedAt: '2026-05-04T09:00:00.000Z',
+    expiresAt: '2026-06-04T09:00:00.000Z',
     featured: false,
     views: 128
   },
@@ -50,7 +50,7 @@ export const jobs: Job[] = [
     id: 'job-3',
     slug: 'registered-nurse-sydney',
     title: 'Registered Nurse',
-    company: companies[2], // Bondi Health Group
+    company: companies[2],
     description: 'Looking for a compassionate registered nurse to join our dynamic healthcare team in the Eastern Suburbs.',
     category: 'Healthcare',
     employmentType: 'casual',
@@ -63,8 +63,8 @@ export const jobs: Job[] = [
     workMode: 'onsite',
     visaSponsorship: true,
     skills: ['Patient Care', 'Clinical Assessment', 'Nursing'],
-    postedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 29 * 86400000).toISOString(),
+    postedAt: '2026-05-08T09:00:00.000Z',
+    expiresAt: '2026-06-08T09:00:00.000Z',
     featured: true,
     views: 450
   },
@@ -72,7 +72,7 @@ export const jobs: Job[] = [
     id: 'job-4',
     slug: 'digital-marketing-manager-melbourne',
     title: 'Digital Marketing Manager',
-    company: companies[3], // Kangaroo Retail
+    company: companies[3],
     description: 'Lead our digital marketing strategy across SEO, SEM, email, and social channels. Drive customer acquisition and retention for a growing national retailer.',
     category: 'Marketing',
     employmentType: 'full-time',
@@ -85,8 +85,8 @@ export const jobs: Job[] = [
     workMode: 'hybrid',
     visaSponsorship: false,
     skills: ['SEO', 'Google Ads', 'Meta Ads', 'Email Marketing', 'Analytics'],
-    postedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 27 * 86400000).toISOString(),
+    postedAt: '2026-05-06T09:00:00.000Z',
+    expiresAt: '2026-06-06T09:00:00.000Z',
     featured: true,
     views: 215
   },
@@ -94,7 +94,7 @@ export const jobs: Job[] = [
     id: 'job-5',
     slug: 'financial-analyst-brisbane',
     title: 'Financial Analyst',
-    company: companies[4], // Eucalyptus Finance
+    company: companies[4],
     description: 'Analyse investment portfolios and provide strategic financial advice to our growing roster of sustainable investment clients.',
     category: 'Finance',
     employmentType: 'full-time',
@@ -107,8 +107,8 @@ export const jobs: Job[] = [
     workMode: 'hybrid',
     visaSponsorship: true,
     skills: ['Financial Modelling', 'Excel', 'Python', 'Bloomberg', 'CFA'],
-    postedAt: new Date(Date.now() - 4 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 26 * 86400000).toISOString(),
+    postedAt: '2026-05-05T09:00:00.000Z',
+    expiresAt: '2026-06-05T09:00:00.000Z',
     featured: true,
     views: 178
   },
@@ -116,7 +116,7 @@ export const jobs: Job[] = [
     id: 'job-6',
     slug: 'construction-project-manager-perth',
     title: 'Construction Project Manager',
-    company: companies[5], // Ironbark Construction
+    company: companies[5],
     description: 'Oversee large-scale residential and commercial construction projects in the Perth metro area. Manage budgets, subcontractors, and delivery timelines.',
     category: 'Construction',
     employmentType: 'full-time',
@@ -129,8 +129,8 @@ export const jobs: Job[] = [
     workMode: 'onsite',
     visaSponsorship: false,
     skills: ['Project Management', 'MS Project', 'Procore', 'Budget Management'],
-    postedAt: new Date(Date.now() - 6 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 24 * 86400000).toISOString(),
+    postedAt: '2026-05-03T09:00:00.000Z',
+    expiresAt: '2026-06-03T09:00:00.000Z',
     featured: true,
     views: 302
   }
