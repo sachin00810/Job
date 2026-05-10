@@ -16,6 +16,7 @@ import { rooms } from "@/data/rooms";
 import { formatRent, formatCurrency, formatDateRelative } from "@/lib/utils";
 import RoomCard from "@/components/rooms/RoomCard";
 import { RoomActionButtons } from "@/components/rooms/RoomActionButtons";
+import { ShareButton } from "@/components/shared/ShareButton";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
@@ -123,7 +124,7 @@ export default function RoomDetailPage({
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex items-center flex-wrap gap-2">
             {room.featured && (
               <span className="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-semibold">
                 Featured
@@ -139,6 +140,10 @@ export default function RoomDetailPage({
                 Bills included
               </span>
             )}
+            <ShareButton
+              title={room.title}
+              className="ml-auto flex items-center gap-1.5 text-sm text-amber-100 hover:text-white transition-colors"
+            />
           </div>
         </div>
       </section>

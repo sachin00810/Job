@@ -7,6 +7,7 @@ import { formatCurrency, formatDateRelative } from "@/lib/utils";
 import JobCard from "@/components/jobs/JobCard";
 import { ApplyModal } from "@/components/jobs/ApplyModal";
 import { SaveJobButton } from "@/components/jobs/SaveJobButton";
+import { ShareButton } from "@/components/shared/ShareButton";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
@@ -81,7 +82,7 @@ export default function JobDetailPage({ params }: { params: { slug: string } }) 
             </div>
           </div>
           
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex items-center gap-2 flex-wrap">
             {job.visaSponsorship && (
               <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
                 Visa Sponsorship
@@ -92,6 +93,10 @@ export default function JobDetailPage({ params }: { params: { slug: string } }) 
                 Featured
               </span>
             )}
+            <ShareButton
+              title={`${job.title} at ${job.company.name}`}
+              className="ml-auto flex items-center gap-1.5 text-sm text-slate-300 hover:text-white transition-colors"
+            />
           </div>
         </div>
       </section>
