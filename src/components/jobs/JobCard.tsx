@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -15,17 +17,21 @@ export default function JobCard({ job }: JobCardProps) {
       className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-slate-200"
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link
+          href={`/companies/${job.company.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center gap-3 group/company"
+        >
           <Avatar className="h-12 w-12">
             <AvatarImage src={job.company.logoUrl} alt={job.company.name} />
             <AvatarFallback className="text-xs font-semibold">
               {job.company.name.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm text-slate-700 font-medium">
+          <span className="text-sm text-slate-700 font-medium group-hover/company:text-indigo-600 transition-colors">
             {job.company.name}
           </span>
-        </div>
+        </Link>
         {job.featured && (
           <span className="text-xs font-semibold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">
             Featured

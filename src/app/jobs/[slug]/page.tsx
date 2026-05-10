@@ -54,7 +54,9 @@ export default function JobDetailPage({ params }: { params: { slug: string } }) 
                 {job.company.name.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <span className="text-lg font-medium">{job.company.name}</span>
+            <Link href={`/companies/${job.company.id}`} className="text-lg font-medium hover:text-indigo-300 transition-colors">
+              {job.company.name}
+            </Link>
             {job.company.verified && (
               <CheckCircle2 className="h-5 w-5 text-green-400" />
             )}
