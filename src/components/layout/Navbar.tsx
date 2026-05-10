@@ -1,12 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { Briefcase, Menu, Search, X } from "lucide-react";
+import { Briefcase, Menu, Search, X, Clock } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+
+const STORAGE_KEY = "appname_recent_searches";
+const MAX_RECENT = 5;
+
+function loadRecent(): { query: string; tab: "jobs" | "rooms" }[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveRecent(entry: { query: string; tab: "jobs" | "rooms" }) {
+  const existing = loadRecent().filter((r) => !(r.query === entry.query && r.tab === entry.tab));
+  const next = [entry, ...existing].slice(0, MAX_RECENT);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+}
 
 export function Navbar() {
   const router = useRouter();
@@ -14,6 +32,7 @@ export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTab, setSearchTab] = useState<"jobs" | "rooms">("jobs");
   const [query, setQuery] = useState("");
+  const [recentSearches, setRecentSearches] = useState<{ query: string; tab: "jobs" | "rooms" }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const navLinks = [
@@ -24,7 +43,10 @@ export function Navbar() {
   ];
 
   useEffect(() => {
-    if (searchOpen) inputRef.current?.focus();
+    if (searchOpen) {
+      inputRef.current?.focus();
+      setRecentSearches(loadRecent());
+    }
   }, [searchOpen]);
 
   useEffect(() => {
@@ -40,17 +62,22 @@ export function Navbar() {
     setQuery("");
   }
 
-  function handleSearch() {
-    if (!query.trim()) return;
+  function runSearch(q: string, tab: "jobs" | "rooms") {
+    if (!q.trim()) return;
+    saveRecent({ query: q.trim(), tab });
     const params = new URLSearchParams();
-    if (searchTab === "jobs") {
-      params.set("q", query.trim());
+    if (tab === "jobs") {
+      params.set("q", q.trim());
       router.push(`/jobs?${params}`);
     } else {
-      params.set("location", query.trim());
+      params.set("location", q.trim());
       router.push(`/rooms?${params}`);
     }
     closeSearch();
+  }
+
+  function handleSearch() {
+    runSearch(query, searchTab);
   }
 
   return (
@@ -158,65 +185,87 @@ export function Navbar() {
       {/* Search bar dropdown */}
       {searchOpen && (
         <div className="border-t border-gray-200 bg-white px-4 py-3 shadow-md">
-          <div className="mx-auto max-w-2xl flex items-center gap-3">
-            {/* Jobs / Rooms toggle */}
-            <div className="flex rounded-lg border border-slate-200 overflow-hidden shrink-0">
+          <div className="mx-auto max-w-2xl">
+            <div className="flex items-center gap-3">
+              {/* Jobs / Rooms toggle */}
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden shrink-0">
+                <button
+                  onClick={() => setSearchTab("jobs")}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-medium transition-colors",
+                    searchTab === "jobs"
+                      ? "bg-indigo-600 text-white"
+                      : "text-slate-600 hover:bg-slate-50"
+                  )}
+                >
+                  Jobs
+                </button>
+                <button
+                  onClick={() => setSearchTab("rooms")}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-medium transition-colors",
+                    searchTab === "rooms"
+                      ? "bg-indigo-600 text-white"
+                      : "text-slate-600 hover:bg-slate-50"
+                  )}
+                >
+                  Rooms
+                </button>
+              </div>
+
+              {/* Input */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  placeholder={
+                    searchTab === "jobs"
+                      ? "Job title, keyword, or company…"
+                      : "Suburb or city…"
+                  }
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
               <button
-                onClick={() => setSearchTab("jobs")}
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium transition-colors",
-                  searchTab === "jobs"
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-600 hover:bg-slate-50"
-                )}
+                onClick={handleSearch}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
               >
-                Jobs
+                Search
               </button>
+
               <button
-                onClick={() => setSearchTab("rooms")}
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium transition-colors",
-                  searchTab === "rooms"
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-600 hover:bg-slate-50"
-                )}
+                onClick={closeSearch}
+                className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="Close search"
               >
-                Rooms
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder={
-                  searchTab === "jobs"
-                    ? "Job title, keyword, or company…"
-                    : "Suburb or city…"
-                }
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            <button
-              onClick={handleSearch}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
-            >
-              Search
-            </button>
-
-            <button
-              onClick={closeSearch}
-              className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
-              aria-label="Close search"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            {/* Recent searches */}
+            {recentSearches.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2 items-center">
+                <span className="flex items-center gap-1 text-xs text-slate-400 shrink-0">
+                  <Clock className="h-3 w-3" />
+                  Recent:
+                </span>
+                {recentSearches.map((r, i) => (
+                  <button
+                    key={i}
+                    onClick={() => runSearch(r.query, r.tab)}
+                    className="flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full transition-colors"
+                  >
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${r.tab === "jobs" ? "bg-indigo-500" : "bg-amber-500"}`} />
+                    {r.query}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
