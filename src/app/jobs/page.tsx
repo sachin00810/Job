@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { jobs as allJobs } from "@/data/jobs";
 import JobCard from "@/components/jobs/JobCard";
+import { JobCardSkeleton } from "@/components/jobs/JobCardSkeleton";
 import { Pagination } from "@/components/ui/Pagination";
 import type { Job } from "@/types";
 
@@ -424,17 +425,37 @@ function JobsContent() {
   );
 }
 
-export default function JobsPage() {
+function JobsPageSkeleton() {
   return (
-    <Suspense
-      fallback={
-        <div className="bg-indigo-600 py-12 px-4">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold text-white">Find a Job</h1>
+    <>
+      <section className="bg-indigo-600 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-white">Find a Job</h1>
+        </div>
+      </section>
+      <section className="bg-slate-50 py-10 min-h-screen px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex gap-8">
+            <aside className="hidden lg:block w-64 shrink-0">
+              <div className="bg-white rounded-xl p-5 border border-slate-200 space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-4 bg-slate-200 animate-pulse rounded" />
+                ))}
+              </div>
+            </aside>
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => <JobCardSkeleton key={i} />)}
+            </div>
           </div>
         </div>
-      }
-    >
+      </section>
+    </>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={<JobsPageSkeleton />}>
       <JobsContent />
     </Suspense>
   );
