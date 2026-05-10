@@ -29,7 +29,8 @@ export function Footer() {
   return (
     <footer className="bg-slate-900 text-white py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+
           {/* Column 1: Brand */}
           <div className="space-y-4">
             <Link href="/" className="inline-block">
@@ -43,29 +44,19 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Column 2: For Job Seekers */}
+          {/* Column 2: Explore */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">For Job Seekers</h3>
+            <h3 className="font-semibold text-lg mb-4">Explore</h3>
             <ul className="space-y-3">
               <li><Link href="/jobs" className="text-sm text-slate-300 hover:text-white transition-colors">Browse Jobs</Link></li>
-              <li><Link href="/jobs/alerts" className="text-sm text-slate-300 hover:text-white transition-colors">Job Alerts</Link></li>
-              <li><Link href="/resources/career" className="text-sm text-slate-300 hover:text-white transition-colors">Career Advice</Link></li>
-              <li><Link href="/resources/resume" className="text-sm text-slate-300 hover:text-white transition-colors">Resume Tips</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 3: For Room Seekers */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">For Room Seekers</h3>
-            <ul className="space-y-3">
               <li><Link href="/rooms" className="text-sm text-slate-300 hover:text-white transition-colors">Browse Rooms</Link></li>
-              <li><Link href="/rooms/saved" className="text-sm text-slate-300 hover:text-white transition-colors">Saved Rooms</Link></li>
-              <li><Link href="/resources/suburbs" className="text-sm text-slate-300 hover:text-white transition-colors">Suburb Guides</Link></li>
-              <li><Link href="/resources/renting" className="text-sm text-slate-300 hover:text-white transition-colors">Renting Tips</Link></li>
+              <li><Link href="/post/job" className="text-sm text-slate-300 hover:text-white transition-colors">Post a Job</Link></li>
+              <li><Link href="/post/room" className="text-sm text-slate-300 hover:text-white transition-colors">List a Room</Link></li>
+              <li><Link href="/dashboard" className="text-sm text-slate-300 hover:text-white transition-colors">My Dashboard</Link></li>
             </ul>
           </div>
 
-          {/* Column 4: Company */}
+          {/* Column 3: Company */}
           <div>
             <h3 className="font-semibold text-lg mb-4">Company</h3>
             <ul className="space-y-3">
@@ -74,7 +65,6 @@ export function Footer() {
               <li><Link href="/help" className="text-sm text-slate-300 hover:text-white transition-colors">Help Center</Link></li>
               <li><Link href="/terms" className="text-sm text-slate-300 hover:text-white transition-colors">Terms</Link></li>
               <li><Link href="/privacy" className="text-sm text-slate-300 hover:text-white transition-colors">Privacy</Link></li>
-              <li><Link href="/report" className="text-sm text-slate-300 hover:text-white transition-colors">Report a Listing</Link></li>
             </ul>
           </div>
         </div>
@@ -82,7 +72,7 @@ export function Footer() {
         {/* Bottom Strip */}
         <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-slate-400">
-            &copy; 2025 appname. All rights reserved.
+            &copy; {new Date().getFullYear()} appname. All rights reserved.
           </p>
           <div className="flex space-x-6">
             <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">

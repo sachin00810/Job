@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MessageSquare, CheckCircle, Search } from "lucide-react";
+import { ShieldCheck, Zap, Users } from "lucide-react";
 import { jobs } from "@/data/jobs";
 import { rooms } from "@/data/rooms";
 import { HeroSearch } from "@/components/home/HeroSearch";
@@ -23,24 +23,21 @@ const stats = [
   { value: "94%", label: "Match Rate" },
 ];
 
-const steps = [
+const trustPoints = [
   {
-    Icon: Search,
-    number: "01",
-    title: "Search",
-    desc: "Filter through thousands of verified jobs and rooms across Australia.",
+    Icon: ShieldCheck,
+    title: "Verified listings",
+    desc: "Every employer and landlord goes through identity verification before posting.",
   },
   {
-    Icon: MessageSquare,
-    number: "02",
-    title: "Connect",
-    desc: "Message employers and landlords directly through our safe in-app chat.",
+    Icon: Zap,
+    title: "Apply in minutes",
+    desc: "One profile, instant applications — no repeated form-filling across sites.",
   },
   {
-    Icon: CheckCircle,
-    number: "03",
-    title: "Land it",
-    desc: "Get the job, lock in the room, and start your new chapter.",
+    Icon: Users,
+    title: "Built for newcomers",
+    desc: "Visa sponsorship filters, suburb guides, and a community that gets it.",
   },
 ];
 
@@ -149,17 +146,16 @@ export default function Home() {
       {/* ── Section 5: How It Works ── */}
       <section className="py-20 bg-gradient-to-b from-slate-50 to-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-slate-900">How appname works</h2>
-          <p className="mt-2 text-slate-600">Simple, fast, free to start</p>
+          <h2 className="text-3xl font-bold text-slate-900">Why people choose appname</h2>
+          <p className="mt-2 text-slate-600">Built for Australians, trusted by thousands</p>
 
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map(({ Icon, number, title, desc }) => (
-              <div key={number} className="flex flex-col items-center">
+            {trustPoints.map(({ Icon, title, desc }) => (
+              <div key={title} className="flex flex-col items-center">
                 <div className="h-14 w-14 rounded-full bg-indigo-100 flex items-center justify-center">
                   <Icon className="h-7 w-7 text-indigo-600" />
                 </div>
-                <p className="mt-4 text-sm font-bold text-indigo-600">{number}</p>
-                <h3 className="mt-1 text-xl font-semibold text-slate-900">{title}</h3>
+                <h3 className="mt-4 text-xl font-semibold text-slate-900">{title}</h3>
                 <p className="mt-2 text-slate-600 max-w-xs">{desc}</p>
               </div>
             ))}

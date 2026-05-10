@@ -46,9 +46,7 @@ export default function SignInPage() {
                 <label className="block text-sm font-medium text-slate-700">
                   Password
                 </label>
-                <Link href="/auth/forgot-password" className="text-xs text-indigo-600 hover:underline">
-                  Forgot password?
-                </Link>
+                <span className="text-xs text-slate-400">Forgot password? Contact support</span>
               </div>
               <input
                 type="password"
