@@ -40,6 +40,7 @@ export function Navbar() {
     { name: "Find Rooms", href: "/rooms" },
     { name: "Post a Job", href: "/post/job" },
     { name: "List a Room", href: "/post/room" },
+    { name: "Dashboard", href: "/dashboard" },
   ];
 
   useEffect(() => {
