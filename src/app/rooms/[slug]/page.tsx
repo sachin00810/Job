@@ -4,7 +4,6 @@ import Image from "next/image";
 import {
   MapPin,
   Calendar,
-  Heart,
   CheckCircle2,
   Wifi,
   Car,
@@ -16,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { rooms } from "@/data/rooms";
 import { formatRent, formatCurrency, formatDateRelative } from "@/lib/utils";
 import RoomCard from "@/components/rooms/RoomCard";
+import { RoomActionButtons } from "@/components/rooms/RoomActionButtons";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
@@ -271,13 +271,7 @@ export default function RoomDetailPage({
                 Bond: {formatCurrency(room.bond, room.currency)}
               </p>
 
-              <button className="mt-5 w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg text-base font-semibold transition-colors">
-                Message owner
-              </button>
-              <button className="mt-3 w-full border border-slate-200 hover:bg-slate-50 text-slate-700 py-3 rounded-lg font-medium flex justify-center items-center gap-2 transition-colors">
-                <Heart className="h-5 w-5 text-slate-400" />
-                Save room
-              </button>
+              <RoomActionButtons roomTitle={room.title} ownerName={room.ownerName} />
 
               <p className="mt-4 text-center text-sm text-slate-500">
                 Listed {formatDateRelative(room.postedAt)}

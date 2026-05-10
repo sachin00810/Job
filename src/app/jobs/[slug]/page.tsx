@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MapPin, Briefcase, Globe, DollarSign, Heart, CheckCircle2 } from "lucide-react";
+import { MapPin, Briefcase, Globe, DollarSign, CheckCircle2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { jobs } from "@/data/jobs";
 import { formatCurrency, formatDateRelative } from "@/lib/utils";
 import JobCard from "@/components/jobs/JobCard";
 import { ApplyModal } from "@/components/jobs/ApplyModal";
+import { SaveJobButton } from "@/components/jobs/SaveJobButton";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
@@ -135,10 +136,7 @@ export default function JobDetailPage({ params }: { params: { slug: string } }) 
           <div className="sticky top-24">
             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
               <ApplyModal jobTitle={job.title} companyName={job.company.name} />
-              <button className="mt-3 w-full border border-slate-200 hover:bg-slate-50 text-slate-700 py-3 px-4 rounded-lg font-medium flex justify-center items-center gap-2 transition-colors">
-                <Heart className="h-5 w-5 text-slate-400" />
-                Save job
-              </button>
+              <SaveJobButton jobTitle={job.title} />
               <p className="mt-4 text-center text-sm text-slate-500">
                 Posted {formatDateRelative(job.postedAt)} · {job.views} views
               </p>

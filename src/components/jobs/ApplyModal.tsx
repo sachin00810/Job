@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, CheckCircle, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 interface Props {
   jobTitle: string;
@@ -16,11 +17,13 @@ export function ApplyModal({ jobTitle, companyName }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
+    toast.success("Application sent!", {
+      description: `${companyName} will be in touch if your profile is a good match.`,
+    });
   }
 
   function handleClose() {
     setOpen(false);
-    // Reset after animation
     setTimeout(() => setSubmitted(false), 300);
   }
 

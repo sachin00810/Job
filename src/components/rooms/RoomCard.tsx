@@ -1,15 +1,32 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Heart } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatRent } from "@/lib/utils";
 import type { Room } from "@/types";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface RoomCardProps {
   room: Room;
 }
 
 export default function RoomCard({ room }: RoomCardProps) {
+  const [saved, setSaved] = useState(false);
+
+  function toggleSave(e: React.MouseEvent) {
+    e.preventDefault();
+    const next = !saved;
+    setSaved(next);
+    if (next) {
+      toast.success("Room saved!", { description: `"${room.title}" added to saved rooms.` });
+    } else {
+      toast("Room removed", { description: `"${room.title}" removed from saved rooms.` });
+    }
+  }
+
   return (
     <div className="relative rounded-xl overflow-hidden border border-slate-200 hover:shadow-lg transition-shadow group">
       {/* Photo */}
@@ -83,10 +100,11 @@ export default function RoomCard({ room }: RoomCardProps) {
 
       {/* Heart button sits above the stretched link */}
       <button
-        className="absolute top-3 right-3 z-[2] bg-white rounded-full p-2 shadow-sm hover:bg-slate-50 transition-colors"
+        onClick={toggleSave}
+        className={`absolute top-3 right-3 z-[2] bg-white rounded-full p-2 shadow-sm transition-colors ${saved ? "hover:bg-red-50" : "hover:bg-slate-50"}`}
         aria-label="Save to favourites"
       >
-        <Heart className="h-4 w-4 text-slate-500" />
+        <Heart className={`h-4 w-4 ${saved ? "fill-red-500 text-red-500" : "text-slate-500"}`} />
       </button>
     </div>
   );
