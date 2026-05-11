@@ -13,8 +13,11 @@ interface RoomCardProps {
   room: Room;
 }
 
+const HOURS_48 = 48 * 60 * 60 * 1000;
+
 export default function RoomCard({ room }: RoomCardProps) {
   const [saved, setSaved] = useState(false);
+  const fresh = Date.now() - new Date(room.postedAt).getTime() < HOURS_48;
 
   function toggleSave(e: React.MouseEvent) {
     e.preventDefault();
@@ -38,11 +41,18 @@ export default function RoomCard({ room }: RoomCardProps) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        {room.featured && (
-          <span className="absolute top-3 left-3 z-10 bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-            Featured
-          </span>
-        )}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+          {fresh && (
+            <span className="bg-green-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+              New
+            </span>
+          )}
+          {room.featured && (
+            <span className="bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+              Featured
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Card body */}

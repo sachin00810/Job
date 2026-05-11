@@ -10,7 +10,14 @@ interface JobCardProps {
   job: Job;
 }
 
+const HOURS_48 = 48 * 60 * 60 * 1000;
+
+function isNew(postedAt: string) {
+  return Date.now() - new Date(postedAt).getTime() < HOURS_48;
+}
+
 export default function JobCard({ job }: JobCardProps) {
+  const fresh = isNew(job.postedAt);
   return (
     <Link
       href={`/jobs/${job.slug}`}
@@ -32,11 +39,18 @@ export default function JobCard({ job }: JobCardProps) {
             {job.company.name}
           </span>
         </Link>
-        {job.featured && (
-          <span className="text-xs font-semibold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">
-            Featured
-          </span>
-        )}
+        <div className="flex items-center gap-1.5">
+          {fresh && (
+            <span className="text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
+              New
+            </span>
+          )}
+          {job.featured && (
+            <span className="text-xs font-semibold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">
+              Featured
+            </span>
+          )}
+        </div>
       </div>
 
       <h3 className="mt-3 text-lg font-semibold text-slate-900 line-clamp-2">
