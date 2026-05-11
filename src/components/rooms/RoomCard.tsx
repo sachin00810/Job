@@ -6,7 +6,7 @@ import { MapPin, Heart } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatRent } from "@/lib/utils";
 import type { Room } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface RoomCardProps {
@@ -17,7 +17,11 @@ const HOURS_48 = 48 * 60 * 60 * 1000;
 
 export default function RoomCard({ room }: RoomCardProps) {
   const [saved, setSaved] = useState(false);
-  const fresh = Date.now() - new Date(room.postedAt).getTime() < HOURS_48;
+  const [fresh, setFresh] = useState(false);
+
+  useEffect(() => {
+    setFresh(Date.now() - new Date(room.postedAt).getTime() < HOURS_48);
+  }, [room.postedAt]);
 
   function toggleSave(e: React.MouseEvent) {
     e.preventDefault();

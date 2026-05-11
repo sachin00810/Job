@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { MapPin, TrendingUp } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatSalaryRange, formatDateRelative } from "@/lib/utils";
@@ -13,10 +15,6 @@ interface JobCardProps {
 
 const HOURS_48 = 48 * 60 * 60 * 1000;
 
-function isNew(postedAt: string) {
-  return Date.now() - new Date(postedAt).getTime() < HOURS_48;
-}
-
 function categoryAvg(category: string): { min: number; max: number } | null {
   const peers = allJobs.filter((j) => j.category === category);
   if (peers.length < 2) return null;
@@ -26,17 +24,25 @@ function categoryAvg(category: string): { min: number; max: number } | null {
 }
 
 export default function JobCard({ job }: JobCardProps) {
-  const fresh = isNew(job.postedAt);
+  const router = useRouter();
+  // Compute isNew client-side only to avoid server/client hydration mismatch
+  const [fresh, setFresh] = useState(false);
   const avg = categoryAvg(job.category);
+
+  useEffect(() => {
+    setFresh(Date.now() - new Date(job.postedAt).getTime() < HOURS_48);
+  }, [job.postedAt]);
+
   return (
     <Link
       href={`/jobs/${job.slug}`}
       className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-slate-200"
     >
       <div className="flex items-center justify-between">
-        <Link
-          href={`/companies/${job.company.id}`}
-          onClick={(e) => e.stopPropagation()}
+        {/* Company — button instead of <Link> to avoid nested <a> */}
+        <button
+          type="button"
+          onClick={(e) => { e.preventDefault(); router.push(`/companies/${job.company.id}`); }}
           className="flex items-center gap-3 group/company"
         >
           <Avatar className="h-12 w-12">
@@ -48,7 +54,8 @@ export default function JobCard({ job }: JobCardProps) {
           <span className="text-sm text-slate-700 font-medium group-hover/company:text-indigo-600 transition-colors">
             {job.company.name}
           </span>
-        </Link>
+        </button>
+
         <div className="flex items-center gap-1.5">
           {fresh && (
             <span className="text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
