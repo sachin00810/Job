@@ -5,7 +5,7 @@ import { Briefcase, Menu, Search, X, Clock } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "appname_recent_searches";
@@ -28,6 +28,7 @@ function saveRecent(entry: { query: string; tab: "jobs" | "rooms" }) {
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTab, setSearchTab] = useState<"jobs" | "rooms">("jobs");
@@ -96,15 +97,23 @@ export function Navbar() {
 
           {/* CENTER: Desktop Nav Links */}
           <nav className="hidden md:flex space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const active = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors relative",
+                    active
+                      ? "text-indigo-600 after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:bg-indigo-600 after:rounded-full"
+                      : "text-gray-700 hover:text-indigo-600"
+                  )}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* RIGHT: Search + Auth */}
@@ -149,16 +158,22 @@ export function Navbar() {
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="flex flex-col space-y-6 mt-6">
                   <nav className="flex flex-col space-y-4">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setIsOpen(false)}
-                        className="text-lg font-medium text-gray-900 hover:text-indigo-600"
-                      >
-                        {link.name}
-                      </Link>
-                    ))}
+                    {navLinks.map((link) => {
+                      const active = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setIsOpen(false)}
+                          className={cn(
+                            "text-lg font-medium transition-colors",
+                            active ? "text-indigo-600" : "text-gray-900 hover:text-indigo-600"
+                          )}
+                        >
+                          {link.name}
+                        </Link>
+                      );
+                    })}
                   </nav>
                   <div className="flex flex-col space-y-4 pt-6 border-t border-gray-200">
                     <Link
