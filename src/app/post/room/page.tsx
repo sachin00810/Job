@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
-import { Home, CheckCircle, ChevronLeft } from "lucide-react";
+import { Home, CheckCircle, ChevronLeft, ImagePlus, X } from "lucide-react";
 import { StepProgress } from "@/components/shared/StepProgress";
 import { toast } from "sonner";
 
@@ -17,6 +17,23 @@ const SELECT_CLASS =
 export default function ListRoomPage() {
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handlePhotos(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPreviews((prev) => [...prev, ev.target?.result as string].slice(0, 6));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function removePhoto(index: number) {
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  }
 
   function next() {
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -98,6 +115,46 @@ export default function ListRoomPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Description <span className="text-red-500">*</span></label>
                 <textarea required rows={5} placeholder="Describe the room, property, housemates, and neighbourhood..." className={`${FIELD_CLASS} resize-none`} />
+              </div>
+
+              {/* Photo upload */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Photos <span className="text-slate-400 font-normal">(up to 6)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 rounded-xl text-sm text-slate-500 hover:border-amber-400 hover:text-amber-600 transition-colors w-full justify-center"
+                >
+                  <ImagePlus className="h-5 w-5" />
+                  Click to upload photos
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  onChange={handlePhotos}
+                />
+                {previews.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mt-3">
+                    {previews.map((src, i) => (
+                      <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt={`preview ${i + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(i)}
+                          className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
           )}
