@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { MapPin, TrendingUp } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatSalaryRange, formatDateRelative } from "@/lib/utils";
 import type { Job } from "@/types";
+import { jobs as allJobs } from "@/data/jobs";
 
 interface JobCardProps {
   job: Job;
@@ -16,8 +17,17 @@ function isNew(postedAt: string) {
   return Date.now() - new Date(postedAt).getTime() < HOURS_48;
 }
 
+function categoryAvg(category: string): { min: number; max: number } | null {
+  const peers = allJobs.filter((j) => j.category === category);
+  if (peers.length < 2) return null;
+  const avgMin = Math.round(peers.reduce((s, j) => s + j.salaryMin, 0) / peers.length);
+  const avgMax = Math.round(peers.reduce((s, j) => s + j.salaryMax, 0) / peers.length);
+  return { min: avgMin, max: avgMax };
+}
+
 export default function JobCard({ job }: JobCardProps) {
   const fresh = isNew(job.postedAt);
+  const avg = categoryAvg(job.category);
   return (
     <Link
       href={`/jobs/${job.slug}`}
@@ -78,13 +88,23 @@ export default function JobCard({ job }: JobCardProps) {
         )}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-        <span className="font-semibold text-sm text-slate-900">
-          {formatSalaryRange(job.salaryMin, job.salaryMax, job.currency)}
-        </span>
-        <span className="text-xs text-slate-500">
-          {formatDateRelative(job.postedAt)}
-        </span>
+      <div className="mt-4 pt-4 border-t border-slate-100">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-sm text-slate-900">
+            {formatSalaryRange(job.salaryMin, job.salaryMax, job.currency)}
+          </span>
+          <span className="text-xs text-slate-500">
+            {formatDateRelative(job.postedAt)}
+          </span>
+        </div>
+        {avg && (
+          <div className="flex items-center gap-1 mt-1">
+            <TrendingUp className="h-3 w-3 text-slate-400 shrink-0" />
+            <span className="text-xs text-slate-400">
+              Market avg: {formatSalaryRange(avg.min, avg.max, job.currency)}
+            </span>
+          </div>
+        )}
       </div>
     </Link>
   );
