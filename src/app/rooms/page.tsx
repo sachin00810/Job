@@ -2,10 +2,11 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, X, LayoutGrid, Map } from "lucide-react";
 import { rooms as allRooms } from "@/data/rooms";
 import RoomCard from "@/components/rooms/RoomCard";
 import { RoomCardSkeleton } from "@/components/rooms/RoomCardSkeleton";
+import { RoomsMapView } from "@/components/rooms/RoomsMapView";
 import { Pagination } from "@/components/ui/Pagination";
 import type { Room } from "@/types";
 
@@ -188,6 +189,7 @@ function RoomsContent() {
   const [sort, setSort] = useState<SortKey>("recent");
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [page, setPage] = useState(1);
 
   const PAGE_SIZE = 6;
@@ -253,15 +255,36 @@ function RoomsContent() {
                     )}
                   </button>
                 </div>
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortKey)}
-                  className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  <option value="recent">Most recent</option>
-                  <option value="price-asc">Price: low to high</option>
-                  <option value="price-desc">Price: high to low</option>
-                </select>
+                <div className="flex items-center gap-2">
+                  {/* List / Map toggle */}
+                  <div className="flex rounded-lg border border-slate-200 overflow-hidden bg-white">
+                    <button
+                      onClick={() => setViewMode("list")}
+                      className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${viewMode === "list" ? "bg-amber-500 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                      title="List view"
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                      <span className="hidden sm:inline">List</span>
+                    </button>
+                    <button
+                      onClick={() => setViewMode("map")}
+                      className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${viewMode === "map" ? "bg-amber-500 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                      title="Map view"
+                    >
+                      <Map className="h-4 w-4" />
+                      <span className="hidden sm:inline">Map</span>
+                    </button>
+                  </div>
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as SortKey)}
+                    className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="recent">Most recent</option>
+                    <option value="price-asc">Price: low to high</option>
+                    <option value="price-desc">Price: high to low</option>
+                  </select>
+                </div>
               </div>
 
               {/* Active filter chips */}
@@ -309,8 +332,10 @@ function RoomsContent() {
                 </div>
               )}
 
-              {/* Rooms grid or empty state */}
-              {allFiltered.length > 0 ? (
+              {/* Map or List view */}
+              {viewMode === "map" ? (
+                <RoomsMapView rooms={allFiltered} />
+              ) : allFiltered.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {rooms.map((room) => (
