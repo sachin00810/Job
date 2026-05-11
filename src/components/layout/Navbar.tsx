@@ -94,12 +94,12 @@ export function Navbar() {
       const companies = jobs
         .filter((j) => j.company.name.toLowerCase().includes(q))
         .map((j) => j.company.name);
-      return [...new Set([...titles, ...companies])].slice(0, 5);
+      return Array.from(new Set([...titles, ...companies])).slice(0, 5);
     } else {
       const suburbs = rooms
         .filter((r) => r.suburb.toLowerCase().includes(q) || r.city.toLowerCase().includes(q))
         .map((r) => `${r.suburb}, ${r.city}`);
-      return [...new Set(suburbs)].slice(0, 5);
+      return Array.from(new Set(suburbs)).slice(0, 5);
     }
   }, [query, searchTab]);
 
