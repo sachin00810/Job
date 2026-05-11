@@ -4,9 +4,11 @@ import Link from "next/link";
 import { Briefcase, Menu, Search, X, Clock } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { jobs } from "@/data/jobs";
+import { rooms } from "@/data/rooms";
 
 const STORAGE_KEY = "appname_recent_searches";
 const MAX_RECENT = 5;
@@ -81,6 +83,25 @@ export function Navbar() {
   function handleSearch() {
     runSearch(query, searchTab);
   }
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) return [];
+    if (searchTab === "jobs") {
+      const titles = jobs
+        .filter((j) => j.title.toLowerCase().includes(q))
+        .map((j) => j.title);
+      const companies = jobs
+        .filter((j) => j.company.name.toLowerCase().includes(q))
+        .map((j) => j.company.name);
+      return [...new Set([...titles, ...companies])].slice(0, 5);
+    } else {
+      const suburbs = rooms
+        .filter((r) => r.suburb.toLowerCase().includes(q) || r.city.toLowerCase().includes(q))
+        .map((r) => `${r.suburb}, ${r.city}`);
+      return [...new Set(suburbs)].slice(0, 5);
+    }
+  }, [query, searchTab]);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-200">
@@ -229,7 +250,7 @@ export function Navbar() {
                 </button>
               </div>
 
-              {/* Input */}
+              {/* Input + autocomplete */}
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                 <input
@@ -244,7 +265,24 @@ export function Navbar() {
                       : "Suburb or city…"
                   }
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  autoComplete="off"
                 />
+                {suggestions.length > 0 && (
+                  <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                    {suggestions.map((s) => (
+                      <li key={s}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => { e.preventDefault(); runSearch(s, searchTab); }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2 transition-colors"
+                        >
+                          <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                          {s}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <button
