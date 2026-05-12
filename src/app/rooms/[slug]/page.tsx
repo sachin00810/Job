@@ -12,15 +12,25 @@ import {
   Users,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { rooms } from "@/data/rooms";
+import { db } from "@/db";
+import { rooms as roomsTable, roomPhotos } from "@/db/schema";
+import { eq, ne } from "drizzle-orm";
 import { formatRent, formatCurrency, formatDateRelative } from "@/lib/utils";
 import RoomCard from "@/components/rooms/RoomCard";
 import { RoomActionButtons } from "@/components/rooms/RoomActionButtons";
 import { ShareButton } from "@/components/shared/ShareButton";
 import type { Metadata } from "next";
 
+async function getRoom(slug: string) {
+  const [room] = await db.select().from(roomsTable).where(eq(roomsTable.slug, slug)).limit(1);
+  if (!room) return null;
+  const photos = await db.select({ url: roomPhotos.url }).from(roomPhotos).where(eq(roomPhotos.roomId, room.id)).orderBy(roomPhotos.position);
+  return { ...room, photos: photos.map((p) => p.url) };
+}
+
 export async function generateStaticParams() {
-  return rooms.map((room) => ({ slug: room.slug }));
+  const rows = await db.select({ slug: roomsTable.slug }).from(roomsTable);
+  return rows.map((r) => ({ slug: r.slug }));
 }
 
 export async function generateMetadata({
@@ -28,7 +38,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const room = rooms.find((r) => r.slug === params.slug);
+  const room = await getRoom(params.slug);
   if (!room) return {};
   return {
     title: `${room.title} | appname`,
@@ -36,12 +46,12 @@ export async function generateMetadata({
   };
 }
 
-export default function RoomDetailPage({
+export default async function RoomDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const room = rooms.find((r) => r.slug === params.slug);
+  const room = await getRoom(params.slug);
   if (!room) notFound();
 
   const availableDate = new Date(room.availableFrom).toLocaleDateString(
@@ -49,12 +59,13 @@ export default function RoomDetailPage({
     { day: "numeric", month: "long", year: "numeric" }
   );
 
-  const similarRooms = [
-    ...rooms.filter((r) => r.id !== room.id && r.city === room.city),
-    ...rooms.filter((r) => r.id !== room.id && r.city !== room.city),
-  ].slice(0, 3);
+  const similarRows = await db.select().from(roomsTable).where(ne(roomsTable.id, room.id)).limit(3);
+  const similarRooms = await Promise.all(similarRows.map(async (r) => {
+    const photos = await db.select({ url: roomPhotos.url }).from(roomPhotos).where(eq(roomPhotos.roomId, r.id)).orderBy(roomPhotos.position);
+    return { ...r, photos: photos.map((p) => p.url) };
+  }));
 
-  const summaryRows = [
+  const summaryCells = [
     { label: "Rent", value: formatRent(room.rentWeekly, room.currency) },
     { label: "Bond", value: formatCurrency(room.bond, room.currency) },
     {
@@ -289,7 +300,7 @@ export default function RoomDetailPage({
                 Room summary
               </h3>
               <div className="space-y-0">
-                {summaryRows.map(({ label, value, capitalize }) => (
+                {summaryCells.map(({ label, value, capitalize }) => (
                   <div
                     key={label}
                     className="flex justify-between items-center py-2.5 border-b border-slate-100 last:border-0"
