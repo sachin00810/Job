@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Briefcase, CheckCircle, ChevronLeft } from "lucide-react";
 import { StepProgress } from "@/components/shared/StepProgress";
 import { toast } from "sonner";
@@ -21,8 +22,11 @@ const SELECT_CLASS =
   "w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500";
 
 export default function PostJobPage() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   function next() {
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -32,11 +36,43 @@ export default function PostJobPage() {
     setStep((s) => Math.max(s - 1, 0));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (step < STEPS.length - 1) { next(); return; }
-    setSubmitted(true);
-    toast.success("Job submitted!", { description: "Your listing will go live within 24 hours." });
+    if (!formRef.current) return;
+    setLoading(true);
+    const fd = new FormData(formRef.current);
+    const payload = {
+      companyName: fd.get("companyName") as string,
+      companyWebsite: fd.get("companyWebsite") as string,
+      companyEmail: fd.get("companyEmail") as string,
+      companyIndustry: fd.get("companyIndustry") as string,
+      title: fd.get("title") as string,
+      category: fd.get("category") as string,
+      employmentType: fd.get("employmentType") as string,
+      description: fd.get("description") as string,
+      skills: (fd.get("skills") as string).split(",").map((s) => s.trim()).filter(Boolean),
+      locationCity: fd.get("locationCity") as string,
+      locationState: fd.get("locationState") as string,
+      workMode: fd.get("workMode") as string,
+      salaryMin: Number(fd.get("salaryMin") ?? 0),
+      salaryMax: Number(fd.get("salaryMax") ?? 0),
+      visaSponsorship: fd.get("visaSponsorship") === "on",
+    };
+    try {
+      const res = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (res.ok) {
+        const { slug } = await res.json();
+        toast.success("Job posted!", { description: "Your listing is now live." });
+        router.push(`/jobs/${slug}`);
+      } else {
+        toast.error("Failed to post job. Please try again.");
+        setLoading(false);
+      }
+    } catch {
+      toast.error("Network error. Please try again.");
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -81,7 +117,7 @@ export default function PostJobPage() {
       <div className="max-w-3xl mx-auto px-4 py-12">
         <StepProgress steps={STEPS} current={step} color="indigo" />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
 
           {/* Step 1 — Company */}
           {step === 0 && (
@@ -90,20 +126,20 @@ export default function PostJobPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Company name <span className="text-red-500">*</span></label>
-                  <input type="text" required placeholder="e.g. Acme Corp" className={FIELD_CLASS} />
+                  <input name="companyName" type="text" required placeholder="e.g. Acme Corp" className={FIELD_CLASS} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Company website</label>
-                  <input type="url" placeholder="https://yourcompany.com.au" className={FIELD_CLASS} />
+                  <input name="companyWebsite" type="url" placeholder="https://yourcompany.com.au" className={FIELD_CLASS} />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Contact email <span className="text-red-500">*</span></label>
-                <input type="email" required placeholder="hiring@yourcompany.com.au" className={FIELD_CLASS} />
+                <input name="companyEmail" type="email" required placeholder="hiring@yourcompany.com.au" className={FIELD_CLASS} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Industry</label>
-                <select className={SELECT_CLASS}>
+                <select name="companyIndustry" className={SELECT_CLASS}>
                   <option value="">Select industry</option>
                   {categories.map((c) => <option key={c} value={c.toLowerCase()}>{c}</option>)}
                 </select>
@@ -118,19 +154,19 @@ export default function PostJobPage() {
                 <h2 className="font-bold text-slate-900 text-lg">Job details</h2>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Job title <span className="text-red-500">*</span></label>
-                  <input type="text" required placeholder="e.g. Senior Software Engineer" className={FIELD_CLASS} />
+                  <input name="title" type="text" required placeholder="e.g. Senior Software Engineer" className={FIELD_CLASS} />
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Category <span className="text-red-500">*</span></label>
-                    <select required className={SELECT_CLASS}>
+                    <select name="category" required className={SELECT_CLASS}>
                       <option value="">Select category</option>
-                      {categories.map((c) => <option key={c} value={c.toLowerCase()}>{c}</option>)}
+                      {categories.map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Employment type <span className="text-red-500">*</span></label>
-                    <select required className={SELECT_CLASS}>
+                    <select name="employmentType" required className={SELECT_CLASS}>
                       <option value="">Select type</option>
                       <option value="full-time">Full-time</option>
                       <option value="part-time">Part-time</option>
@@ -142,11 +178,11 @@ export default function PostJobPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Job description <span className="text-red-500">*</span></label>
-                  <textarea required rows={6} placeholder="Describe the role, responsibilities, and requirements..." className={`${FIELD_CLASS} resize-none`} />
+                  <textarea name="description" required rows={6} placeholder="Describe the role, responsibilities, and requirements..." className={`${FIELD_CLASS} resize-none`} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Required skills</label>
-                  <input type="text" placeholder="e.g. React, Node.js, TypeScript (comma-separated)" className={FIELD_CLASS} />
+                  <input name="skills" type="text" placeholder="e.g. React, Node.js, TypeScript (comma-separated)" className={FIELD_CLASS} />
                 </div>
               </section>
 
@@ -155,11 +191,11 @@ export default function PostJobPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">City <span className="text-red-500">*</span></label>
-                    <input type="text" required placeholder="e.g. Sydney" className={FIELD_CLASS} />
+                    <input name="locationCity" type="text" required placeholder="e.g. Sydney" className={FIELD_CLASS} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">State <span className="text-red-500">*</span></label>
-                    <select required className={SELECT_CLASS}>
+                    <select name="locationState" required className={SELECT_CLASS}>
                       <option value="">Select state</option>
                       {states.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -187,15 +223,15 @@ export default function PostJobPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Salary min (AUD/yr)</label>
-                  <input type="number" min={0} placeholder="e.g. 80000" className={FIELD_CLASS} />
+                  <input name="salaryMin" type="number" min={0} placeholder="e.g. 80000" className={FIELD_CLASS} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Salary max (AUD/yr)</label>
-                  <input type="number" min={0} placeholder="e.g. 110000" className={FIELD_CLASS} />
+                  <input name="salaryMax" type="number" min={0} placeholder="e.g. 110000" className={FIELD_CLASS} />
                 </div>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="accent-indigo-600 w-4 h-4" />
+                <input name="visaSponsorship" type="checkbox" className="accent-indigo-600 w-4 h-4" />
                 <span className="text-sm text-slate-700">Visa sponsorship available</span>
               </label>
               <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-700">
@@ -218,9 +254,10 @@ export default function PostJobPage() {
             )}
             <button
               type="submit"
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors"
+              disabled={loading}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors"
             >
-              {step === STEPS.length - 1 ? "Submit listing" : `Next: ${STEPS[step + 1]}`}
+              {loading ? "Submitting…" : step === STEPS.length - 1 ? "Submit listing" : `Next: ${STEPS[step + 1]}`}
             </button>
             {step === 0 && (
               <Link href="/" className="px-6 py-3 border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold rounded-xl transition-colors text-sm">
