@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Briefcase, Globe, DollarSign, CheckCircle2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { jobs } from "@/data/jobs";
+import { db } from "@/db";
+import { jobs as jobsTable, companies, jobSkills } from "@/db/schema";
+import { eq, ne } from "drizzle-orm";
 import { formatCurrency, formatDateRelative } from "@/lib/utils";
 import JobCard from "@/components/jobs/JobCard";
 import { ApplyModal } from "@/components/jobs/ApplyModal";
@@ -10,30 +12,49 @@ import { SaveJobButton } from "@/components/jobs/SaveJobButton";
 import { ShareButton } from "@/components/shared/ShareButton";
 import type { Metadata } from "next";
 
+async function getJob(slug: string) {
+  const [row] = await db
+    .select({
+      id: jobsTable.id, slug: jobsTable.slug, title: jobsTable.title, description: jobsTable.description,
+      category: jobsTable.category, employmentType: jobsTable.employmentType,
+      salaryMin: jobsTable.salaryMin, salaryMax: jobsTable.salaryMax, currency: jobsTable.currency,
+      locationCity: jobsTable.locationCity, locationState: jobsTable.locationState, locationCountry: jobsTable.locationCountry,
+      workMode: jobsTable.workMode, visaSponsorship: jobsTable.visaSponsorship,
+      featured: jobsTable.featured, views: jobsTable.views, postedAt: jobsTable.postedAt, expiresAt: jobsTable.expiresAt,
+      company: { id: companies.id, name: companies.name, logoUrl: companies.logoUrl, website: companies.website, industry: companies.industry, size: companies.size, description: companies.description, verified: companies.verified, city: companies.city },
+    })
+    .from(jobsTable)
+    .innerJoin(companies, eq(jobsTable.companyId, companies.id))
+    .where(eq(jobsTable.slug, slug))
+    .limit(1);
+  if (!row) return null;
+  const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, row.id));
+  return { ...row, skills: skills.map((s) => s.skill) };
+}
+
 export async function generateStaticParams() {
-  return jobs.map((job) => ({
-    slug: job.slug,
-  }));
+  const rows = await db.select({ slug: jobsTable.slug }).from(jobsTable);
+  return rows.map((r) => ({ slug: r.slug }));
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const job = jobs.find((j) => j.slug === params.slug);
+  const job = await getJob(params.slug);
   if (!job) return {};
-  
   return {
     title: `${job.title} at ${job.company.name} | appname`,
     description: job.description.slice(0, 160),
   };
 }
 
-export default function JobDetailPage({ params }: { params: { slug: string } }) {
-  const job = jobs.find((j) => j.slug === params.slug);
-  
-  if (!job) {
-    notFound();
-  }
+export default async function JobDetailPage({ params }: { params: { slug: string } }) {
+  const job = await getJob(params.slug);
+  if (!job) notFound();
 
-  const similarJobs = jobs.filter((j) => j.id !== job.id).slice(0, 3);
+  const similarRows = await db
+    .select({ id: jobsTable.id, slug: jobsTable.slug, title: jobsTable.title, description: jobsTable.description, category: jobsTable.category, employmentType: jobsTable.employmentType, salaryMin: jobsTable.salaryMin, salaryMax: jobsTable.salaryMax, currency: jobsTable.currency, locationCity: jobsTable.locationCity, locationState: jobsTable.locationState, locationCountry: jobsTable.locationCountry, workMode: jobsTable.workMode, visaSponsorship: jobsTable.visaSponsorship, featured: jobsTable.featured, views: jobsTable.views, postedAt: jobsTable.postedAt, expiresAt: jobsTable.expiresAt, company: { id: companies.id, name: companies.name, logoUrl: companies.logoUrl, website: companies.website, industry: companies.industry, size: companies.size, description: companies.description, verified: companies.verified, city: companies.city } })
+    .from(jobsTable).innerJoin(companies, eq(jobsTable.companyId, companies.id)).where(ne(jobsTable.id, job.id)).limit(3);
+  const similarSkills = await Promise.all(similarRows.map(async (j) => { const s = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, j.id)); return { ...j, skills: s.map((x) => x.skill) }; }));
+  const similarJobs = similarSkills;
 
   return (
     <main className="bg-white min-h-screen">
