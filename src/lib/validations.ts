@@ -1,0 +1,42 @@
+import { z } from "zod";
+
+export const createJobSchema = z.object({
+  companyName: z.string().min(1),
+  companyWebsite: z.string().url().optional().or(z.literal("")),
+  companyEmail: z.string().email(),
+  companyIndustry: z.string().min(1),
+  title: z.string().min(1),
+  category: z.string().min(1),
+  employmentType: z.enum(["full-time", "part-time", "casual", "contract", "internship"]),
+  description: z.string().min(10),
+  skills: z.array(z.string()).optional(),
+  locationCity: z.string().min(1),
+  locationState: z.string().min(1),
+  workMode: z.enum(["onsite", "hybrid", "remote"]),
+  salaryMin: z.coerce.number().min(0).optional(),
+  salaryMax: z.coerce.number().min(0).optional(),
+  visaSponsorship: z.boolean().optional(),
+});
+
+export const createRoomSchema = z.object({
+  title: z.string().min(1),
+  type: z.enum(["private-room", "shared-room", "studio", "whole-place"]),
+  description: z.string().min(10),
+  suburb: z.string().min(1),
+  city: z.string().min(1),
+  state: z.string().min(1),
+  rentWeekly: z.coerce.number().min(1),
+  bond: z.coerce.number().min(0),
+  availableFrom: z.string().min(1),
+  minStayMonths: z.coerce.number().min(1),
+  furnished: z.boolean().optional(),
+  billsIncluded: z.boolean().optional(),
+  internet: z.boolean().optional(),
+  parking: z.boolean().optional(),
+  petsAllowed: z.boolean().optional(),
+  smokingAllowed: z.boolean().optional(),
+  genderPref: z.enum(["any", "female", "male"]).optional(),
+  ownerName: z.string().min(1),
+  ownerEmail: z.string().email(),
+  photos: z.array(z.string()).optional(),
+});
