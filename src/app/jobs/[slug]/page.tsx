@@ -185,7 +185,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
         <div className="space-y-6">
           <div className="sticky top-24">
             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-              <ApplyModal jobTitle={job.title} companyName={job.company.name} />
+              <ApplyModal jobId={job.id} jobTitle={job.title} companyName={job.company.name} />
               <SaveJobButton jobTitle={job.title} jobId={job.id} />
               <p className="mt-4 text-center text-sm text-slate-500">
                 Posted {formatDateRelative(job.postedAt)} · {job.views} views
