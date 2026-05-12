@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "sonner";
+import { Providers } from "@/components/Providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -19,14 +20,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)}>
-      <body className="antialiased min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
-        <Toaster position="bottom-right" richColors />
+    <html lang="en" className={cn("font-sans", inter.variable)} suppressHydrationWarning>
+      <body className="antialiased min-h-screen flex flex-col bg-background text-foreground">
+        <Providers>
+          <Navbar />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+          <Toaster position="bottom-right" richColors />
+        </Providers>
       </body>
     </html>
   );
