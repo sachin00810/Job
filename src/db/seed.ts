@@ -1,13 +1,15 @@
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 import { companies as staticCompanies } from "../data/companies";
 import { jobs as staticJobs } from "../data/jobs";
 import { rooms as staticRooms } from "../data/rooms";
 
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql, { schema });
+const url = process.env.DATABASE_URL!;
+const isNeon = url.includes("neon.tech");
+const client = postgres(url, { ssl: isNeon ? "require" : false });
+const db = drizzle(client, { schema });
 
 async function seed() {
   console.log("Seeding companies...");

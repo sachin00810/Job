@@ -1,16 +1,18 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 
 function createDb() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL environment variable is not set");
-  return drizzle(neon(url), { schema });
+  // ssl: "require" for Neon/cloud, false for local postgres
+  const isNeon = url.includes("neon.tech");
+  const client = postgres(url, { ssl: isNeon ? "require" : false });
+  return drizzle(client, { schema });
 }
 
 let _db: ReturnType<typeof createDb> | undefined;
 
-// Lazy singleton — connection is created on first query, not at module load
 export const db = new Proxy({} as ReturnType<typeof createDb>, {
   get(_, prop) {
     if (!_db) _db = createDb();
