@@ -113,9 +113,9 @@ export default function ListRoomPage() {
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Room submitted!</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Your room is live!</h1>
           <p className="text-slate-600 text-sm mb-6">
-            Your listing is under review and will go live within 24 hours.
+            Your listing is now live and visible to renters.
           </p>
           <div className="flex gap-3 justify-center">
             <Link href="/rooms" className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors">
@@ -316,7 +316,7 @@ export default function ListRoomPage() {
                   </div>
                 </div>
                 <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">
-                  Your listing will be reviewed within 24 hours and emailed to you once live.
+                  Your listing will go live immediately once submitted.
                 </div>
               </section>
             </>

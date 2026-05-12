@@ -82,9 +82,9 @@ export default function PostJobPage() {
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Job submitted!</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Your job is live!</h1>
           <p className="text-slate-600 text-sm mb-6">
-            Your listing is under review and will go live within 24 hours.
+            Your listing is now live and visible to job seekers.
           </p>
           <div className="flex gap-3 justify-center">
             <Link href="/jobs" className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors">
@@ -235,7 +235,7 @@ export default function PostJobPage() {
                 <span className="text-sm text-slate-700">Visa sponsorship available</span>
               </label>
               <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-700">
-                Your listing will be reviewed within 24 hours and emailed to you once live.
+                Your listing will go live immediately once submitted.
               </div>
             </section>
           )}
