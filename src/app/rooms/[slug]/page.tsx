@@ -20,12 +20,17 @@ import RoomCard from "@/components/rooms/RoomCard";
 import { RoomActionButtons } from "@/components/rooms/RoomActionButtons";
 import { ShareButton } from "@/components/shared/ShareButton";
 import type { Metadata } from "next";
+import type { Room } from "@/types";
 
 async function getRoom(slug: string) {
   const [room] = await db.select().from(roomsTable).where(eq(roomsTable.slug, slug)).limit(1);
   if (!room) return null;
   const photos = await db.select({ url: roomPhotos.url }).from(roomPhotos).where(eq(roomPhotos.roomId, room.id)).orderBy(roomPhotos.position);
-  return { ...room, photos: photos.map((p) => p.url) };
+  return {
+    ...room,
+    postedAt: room.postedAt instanceof Date ? room.postedAt.toISOString() : (room.postedAt ?? ""),
+    photos: photos.map((p) => p.url),
+  };
 }
 
 export async function generateStaticParams() {
@@ -62,7 +67,15 @@ export default async function RoomDetailPage({
   const similarRows = await db.select().from(roomsTable).where(ne(roomsTable.id, room.id)).limit(3);
   const similarRooms = await Promise.all(similarRows.map(async (r) => {
     const photos = await db.select({ url: roomPhotos.url }).from(roomPhotos).where(eq(roomPhotos.roomId, r.id)).orderBy(roomPhotos.position);
-    return { ...r, photos: photos.map((p) => p.url) };
+    return {
+      ...r,
+      type: r.type as Room["type"],
+      genderPref: r.genderPref as Room["genderPref"],
+      lat: r.lat ?? 0,
+      lng: r.lng ?? 0,
+      postedAt: r.postedAt instanceof Date ? r.postedAt.toISOString() : (r.postedAt ?? ""),
+      photos: photos.map((p) => p.url),
+    } as Room;
   }));
 
   const summaryCells = [

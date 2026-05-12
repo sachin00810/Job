@@ -63,9 +63,15 @@ export async function GET() {
       return {
         id: row.id,
         status: row.status,
-        appliedAt: row.appliedAt,
+        appliedAt: row.appliedAt instanceof Date ? row.appliedAt.toISOString() : (row.appliedAt ?? ""),
         coverLetter: row.coverLetter,
-        job: { ...row.job, company: row.company, skills: skills.map((s) => s.skill) },
+        job: {
+          ...row.job,
+          postedAt: row.job.postedAt instanceof Date ? row.job.postedAt.toISOString() : (row.job.postedAt ?? ""),
+          expiresAt: row.job.expiresAt instanceof Date ? row.job.expiresAt.toISOString() : (row.job.expiresAt ?? ""),
+          company: { ...row.company, website: row.company.website ?? undefined },
+          skills: skills.map((s) => s.skill),
+        },
       };
     })
   );

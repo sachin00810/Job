@@ -11,6 +11,7 @@ import { ApplyModal } from "@/components/jobs/ApplyModal";
 import { SaveJobButton } from "@/components/jobs/SaveJobButton";
 import { ShareButton } from "@/components/shared/ShareButton";
 import type { Metadata } from "next";
+import type { Job } from "@/types";
 
 async function getJob(slug: string) {
   const [row] = await db
@@ -29,7 +30,13 @@ async function getJob(slug: string) {
     .limit(1);
   if (!row) return null;
   const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, row.id));
-  return { ...row, skills: skills.map((s) => s.skill) };
+  return {
+    ...row,
+    postedAt: row.postedAt instanceof Date ? row.postedAt.toISOString() : row.postedAt,
+    expiresAt: row.expiresAt instanceof Date ? row.expiresAt.toISOString() : (row.expiresAt ?? ""),
+    company: { ...row.company, website: row.company.website ?? undefined },
+    skills: skills.map((s) => s.skill),
+  };
 }
 
 export async function generateStaticParams() {
@@ -53,8 +60,18 @@ export default async function JobDetailPage({ params }: { params: { slug: string
   const similarRows = await db
     .select({ id: jobsTable.id, slug: jobsTable.slug, title: jobsTable.title, description: jobsTable.description, category: jobsTable.category, employmentType: jobsTable.employmentType, salaryMin: jobsTable.salaryMin, salaryMax: jobsTable.salaryMax, currency: jobsTable.currency, locationCity: jobsTable.locationCity, locationState: jobsTable.locationState, locationCountry: jobsTable.locationCountry, workMode: jobsTable.workMode, visaSponsorship: jobsTable.visaSponsorship, featured: jobsTable.featured, views: jobsTable.views, postedAt: jobsTable.postedAt, expiresAt: jobsTable.expiresAt, company: { id: companies.id, name: companies.name, logoUrl: companies.logoUrl, website: companies.website, industry: companies.industry, size: companies.size, description: companies.description, verified: companies.verified, city: companies.city } })
     .from(jobsTable).innerJoin(companies, eq(jobsTable.companyId, companies.id)).where(ne(jobsTable.id, job.id)).limit(3);
-  const similarSkills = await Promise.all(similarRows.map(async (j) => { const s = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, j.id)); return { ...j, skills: s.map((x) => x.skill) }; }));
-  const similarJobs = similarSkills;
+  const similarJobs = await Promise.all(similarRows.map(async (j) => {
+    const s = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, j.id));
+    return {
+      ...j,
+      postedAt: j.postedAt instanceof Date ? j.postedAt.toISOString() : j.postedAt,
+      expiresAt: j.expiresAt instanceof Date ? j.expiresAt.toISOString() : (j.expiresAt ?? ""),
+      employmentType: j.employmentType as Job["employmentType"],
+      workMode: j.workMode as Job["workMode"],
+      company: { ...j.company, website: j.company.website ?? undefined },
+      skills: s.map((x) => x.skill),
+    };
+  }));
 
   return (
     <main className="bg-white min-h-screen">
@@ -164,7 +181,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
           <div className="sticky top-24">
             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
               <ApplyModal jobTitle={job.title} companyName={job.company.name} />
-              <SaveJobButton jobTitle={job.title} />
+              <SaveJobButton jobTitle={job.title} jobId={job.id} />
               <p className="mt-4 text-center text-sm text-slate-500">
                 Posted {formatDateRelative(job.postedAt)} · {job.views} views
               </p>

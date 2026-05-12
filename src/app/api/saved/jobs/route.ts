@@ -49,7 +49,13 @@ export async function GET() {
   const withSkills = await Promise.all(
     rows.map(async (job) => {
       const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, job.id));
-      return { ...job, skills: skills.map((s) => s.skill) };
+      return {
+        ...job,
+        postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
+        expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
+        company: { ...job.company, website: job.company.website ?? undefined },
+        skills: skills.map((s) => s.skill),
+      };
     })
   );
 

@@ -21,7 +21,12 @@ export async function GET() {
         .from(roomPhotos)
         .where(eq(roomPhotos.roomId, row.rooms.id))
         .orderBy(roomPhotos.position);
-      return { ...row.rooms, photos: photos.map((p) => p.url), savedAt: row.saved_rooms.savedAt };
+      return {
+        ...row.rooms,
+        postedAt: row.rooms.postedAt instanceof Date ? row.rooms.postedAt.toISOString() : (row.rooms.postedAt ?? ""),
+        photos: photos.map((p) => p.url),
+        savedAt: row.saved_rooms.savedAt,
+      };
     })
   );
 

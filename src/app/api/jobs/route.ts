@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { jobs, companies, jobSkills } from "@/db/schema";
-import { and, eq, gte, ilike, or, desc, asc, sql, count } from "drizzle-orm";
+import { and, eq, gte, ilike, or, desc, asc, count } from "drizzle-orm";
 import { auth } from "@/auth";
 import { createJobSchema } from "@/lib/validations";
 
@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   const minSalary = Number(searchParams.get("minSalary") ?? 0);
   const visaOnly = searchParams.get("visaSponsorship") === "true";
   const location = searchParams.get("location") ?? "";
+  const featuredOnly = searchParams.get("featured") === "true";
   const sort = searchParams.get("sort") ?? "recent";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1));
   const limit = Math.min(50, Number(searchParams.get("limit") ?? 12));
@@ -27,6 +28,7 @@ export async function GET(req: NextRequest) {
   if (minSalary > 0) conditions.push(gte(jobs.salaryMin, minSalary));
   if (visaOnly) conditions.push(eq(jobs.visaSponsorship, true));
   if (location) conditions.push(or(ilike(jobs.locationCity, `%${location}%`), ilike(jobs.locationState, `%${location}%`)));
+  if (featuredOnly) conditions.push(eq(jobs.featured, true));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -80,7 +82,13 @@ export async function GET(req: NextRequest) {
   const jobsWithSkills = await Promise.all(
     rows.map(async (job) => {
       const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, job.id));
-      return { ...job, skills: skills.map((s) => s.skill) };
+      return {
+        ...job,
+        postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
+        expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
+        company: { ...job.company, website: job.company.website ?? undefined },
+        skills: skills.map((s) => s.skill),
+      };
     })
   );
 

@@ -73,7 +73,13 @@ export async function GET() {
   const savedJobsWithSkills = await Promise.all(
     savedJobRows.map(async (job) => {
       const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, job.id));
-      return { ...job, skills: skills.map((s) => s.skill) };
+      return {
+        ...job,
+        postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
+        expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
+        company: { ...job.company, website: job.company.website ?? undefined },
+        skills: skills.map((s) => s.skill),
+      };
     })
   );
 
@@ -84,15 +90,24 @@ export async function GET() {
         .from(roomPhotos)
         .where(eq(roomPhotos.roomId, row.rooms.id))
         .orderBy(roomPhotos.position);
-      return { ...row.rooms, photos: photos.map((p) => p.url) };
+      return {
+        ...row.rooms,
+        postedAt: row.rooms.postedAt instanceof Date ? row.rooms.postedAt.toISOString() : (row.rooms.postedAt ?? ""),
+        photos: photos.map((p) => p.url),
+      };
     })
   );
+
+  const serializedApplications = applicationRows.map((row) => ({
+    ...row,
+    appliedAt: row.appliedAt instanceof Date ? row.appliedAt.toISOString() : (row.appliedAt ?? ""),
+  }));
 
   return NextResponse.json({
     user: userRow ? { id: userRow.id, email: userRow.email, fullName: userRow.fullName, avatarUrl: userRow.avatarUrl, role: userRow.role } : null,
     savedJobs: savedJobsWithSkills,
     savedRooms: savedRoomsWithPhotos,
-    applications: applicationRows,
+    applications: serializedApplications,
     stats: {
       savedJobs: savedJobRows.length,
       savedRooms: savedRoomRows.length,

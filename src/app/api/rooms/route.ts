@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
   const parking = searchParams.get("parking") === "true";
   const petsAllowed = searchParams.get("petsAllowed") === "true";
   const sort = searchParams.get("sort") ?? "recent";
+  const featuredOnly = searchParams.get("featured") === "true";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1));
   const limit = Math.min(50, Number(searchParams.get("limit") ?? 12));
   const offset = (page - 1) * limit;
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
   if (internet) conditions.push(eq(rooms.internet, true));
   if (parking) conditions.push(eq(rooms.parking, true));
   if (petsAllowed) conditions.push(eq(rooms.petsAllowed, true));
+  if (featuredOnly) conditions.push(eq(rooms.featured, true));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -49,7 +51,11 @@ export async function GET(req: NextRequest) {
         .from(roomPhotos)
         .where(eq(roomPhotos.roomId, room.id))
         .orderBy(roomPhotos.position);
-      return { ...room, photos: photos.map((p) => p.url) };
+      return {
+        ...room,
+        postedAt: room.postedAt instanceof Date ? room.postedAt.toISOString() : (room.postedAt ?? ""),
+        photos: photos.map((p) => p.url),
+      };
     })
   );
 

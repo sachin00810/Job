@@ -1,20 +1,14 @@
 import Link from "next/link";
 import { ShieldCheck, Zap, Users } from "lucide-react";
-import { jobs } from "@/data/jobs";
-import { rooms } from "@/data/rooms";
+import { db } from "@/db";
+import { jobs, companies, jobSkills, rooms, roomPhotos } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { HeroSearch } from "@/components/home/HeroSearch";
 import JobCard from "@/components/jobs/JobCard";
 import RoomCard from "@/components/rooms/RoomCard";
+import type { Job, Room } from "@/types";
 
-const featuredJobs = [
-  ...jobs.filter((j) => j.featured),
-  ...jobs.filter((j) => !j.featured),
-].slice(0, 6);
-
-const featuredRooms = [
-  ...rooms.filter((r) => r.featured),
-  ...rooms.filter((r) => !r.featured),
-].slice(0, 6);
+export const revalidate = 60; // ISR — revalidate every 60 seconds
 
 const stats = [
   { value: "12,000+", label: "Active Jobs" },
@@ -41,7 +35,98 @@ const trustPoints = [
   },
 ];
 
-export default function Home() {
+async function getHomepageJobs(): Promise<Job[]> {
+  // Prefer featured jobs; fall back to latest 6
+  let rows = await db
+    .select({
+      id: jobs.id, slug: jobs.slug, title: jobs.title, description: jobs.description,
+      category: jobs.category, employmentType: jobs.employmentType,
+      salaryMin: jobs.salaryMin, salaryMax: jobs.salaryMax, currency: jobs.currency,
+      locationCity: jobs.locationCity, locationState: jobs.locationState, locationCountry: jobs.locationCountry,
+      workMode: jobs.workMode, visaSponsorship: jobs.visaSponsorship,
+      featured: jobs.featured, views: jobs.views, postedAt: jobs.postedAt, expiresAt: jobs.expiresAt,
+      company: {
+        id: companies.id, name: companies.name, logoUrl: companies.logoUrl, website: companies.website,
+        industry: companies.industry, size: companies.size, description: companies.description,
+        verified: companies.verified, city: companies.city,
+      },
+    })
+    .from(jobs)
+    .innerJoin(companies, eq(jobs.companyId, companies.id))
+    .where(eq(jobs.featured, true))
+    .orderBy(desc(jobs.postedAt))
+    .limit(6);
+
+  if (rows.length === 0) {
+    rows = await db
+      .select({
+        id: jobs.id, slug: jobs.slug, title: jobs.title, description: jobs.description,
+        category: jobs.category, employmentType: jobs.employmentType,
+        salaryMin: jobs.salaryMin, salaryMax: jobs.salaryMax, currency: jobs.currency,
+        locationCity: jobs.locationCity, locationState: jobs.locationState, locationCountry: jobs.locationCountry,
+        workMode: jobs.workMode, visaSponsorship: jobs.visaSponsorship,
+        featured: jobs.featured, views: jobs.views, postedAt: jobs.postedAt, expiresAt: jobs.expiresAt,
+        company: {
+          id: companies.id, name: companies.name, logoUrl: companies.logoUrl, website: companies.website,
+          industry: companies.industry, size: companies.size, description: companies.description,
+          verified: companies.verified, city: companies.city,
+        },
+      })
+      .from(jobs)
+      .innerJoin(companies, eq(jobs.companyId, companies.id))
+      .orderBy(desc(jobs.postedAt))
+      .limit(6);
+  }
+
+  return await Promise.all(
+    rows.map(async (job) => {
+      const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, job.id));
+      return {
+        ...job,
+        postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
+        expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
+        company: { ...job.company, website: job.company.website ?? undefined },
+        skills: skills.map((s) => s.skill),
+      } as Job;
+    })
+  );
+}
+
+async function getHomepageRooms(): Promise<Room[]> {
+  // Prefer featured rooms; fall back to latest 6
+  let rows = await db
+    .select()
+    .from(rooms)
+    .where(eq(rooms.featured, true))
+    .orderBy(desc(rooms.postedAt))
+    .limit(6);
+
+  if (rows.length === 0) {
+    rows = await db.select().from(rooms).orderBy(desc(rooms.postedAt)).limit(6);
+  }
+
+  return await Promise.all(
+    rows.map(async (room) => {
+      const photos = await db
+        .select({ url: roomPhotos.url })
+        .from(roomPhotos)
+        .where(eq(roomPhotos.roomId, room.id))
+        .orderBy(roomPhotos.position);
+      return {
+        ...room,
+        postedAt: room.postedAt instanceof Date ? room.postedAt.toISOString() : (room.postedAt ?? ""),
+        photos: photos.map((p) => p.url),
+      } as Room;
+    })
+  );
+}
+
+export default async function Home() {
+  const [featuredJobs, featuredRooms] = await Promise.all([
+    getHomepageJobs(),
+    getHomepageRooms(),
+  ]);
+
   return (
     <>
       {/* ── Section 1: Hero ── */}
@@ -95,11 +180,20 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredJobs.map((job) => (
-              <JobCard key={job.id} job={job} />
-            ))}
-          </div>
+          {featuredJobs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredJobs.map((job) => (
+                <JobCard key={job.id} job={job} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 text-slate-500">
+              <p>No jobs listed yet.</p>
+              <Link href="/post/job" className="mt-3 inline-block text-indigo-600 hover:underline font-medium">
+                Post the first job →
+              </Link>
+            </div>
+          )}
 
           <div className="mt-6 sm:hidden text-center">
             <Link href="/jobs" className="text-indigo-600 font-medium hover:underline">
@@ -129,11 +223,20 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredRooms.map((room) => (
-              <RoomCard key={room.id} room={room} />
-            ))}
-          </div>
+          {featuredRooms.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredRooms.map((room) => (
+                <RoomCard key={room.id} room={room} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 text-slate-500">
+              <p>No rooms listed yet.</p>
+              <Link href="/post/room" className="mt-3 inline-block text-amber-600 hover:underline font-medium">
+                List the first room →
+              </Link>
+            </div>
+          )}
 
           <div className="mt-6 sm:hidden text-center">
             <Link href="/rooms" className="text-indigo-600 font-medium hover:underline">
