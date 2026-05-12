@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Home, CheckCircle, ChevronLeft, ImagePlus, X } from "lucide-react";
 import { StepProgress } from "@/components/shared/StepProgress";
 import { toast } from "sonner";
@@ -15,10 +16,13 @@ const SELECT_CLASS =
   "w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500";
 
 export default function ListRoomPage() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   function handlePhotos(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -43,11 +47,48 @@ export default function ListRoomPage() {
     setStep((s) => Math.max(s - 1, 0));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (step < STEPS.length - 1) { next(); return; }
-    setSubmitted(true);
-    toast.success("Room submitted!", { description: "Your listing will go live within 24 hours." });
+    if (!formRef.current) return;
+    setLoading(true);
+    const fd = new FormData(formRef.current);
+    const payload = {
+      title: fd.get("title") as string,
+      type: fd.get("type") as string,
+      description: fd.get("description") as string,
+      suburb: fd.get("suburb") as string,
+      city: fd.get("city") as string,
+      state: fd.get("state") as string,
+      rentWeekly: Number(fd.get("rentWeekly") ?? 0),
+      bond: Number(fd.get("bond") ?? 0),
+      availableFrom: fd.get("availableFrom") as string,
+      minStayMonths: Number(fd.get("minStayMonths") ?? 1),
+      furnished: fd.get("furnished") === "on",
+      billsIncluded: fd.get("billsIncluded") === "on",
+      internet: fd.get("internet") === "on",
+      parking: fd.get("parking") === "on",
+      petsAllowed: fd.get("petsAllowed") === "on",
+      smokingAllowed: fd.get("smokingAllowed") === "on",
+      genderPref: (fd.get("genderPref") as string) || "any",
+      ownerName: fd.get("ownerName") as string,
+      ownerEmail: fd.get("ownerEmail") as string,
+      photos: previews,
+    };
+    try {
+      const res = await fetch("/api/rooms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (res.ok) {
+        const { slug } = await res.json();
+        toast.success("Room listed!", { description: "Your listing is now live." });
+        router.push(`/rooms/${slug}`);
+      } else {
+        toast.error("Failed to submit. Please try again.");
+        setLoading(false);
+      }
+    } catch {
+      toast.error("Network error. Please try again.");
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -92,7 +133,7 @@ export default function ListRoomPage() {
       <div className="max-w-3xl mx-auto px-4 py-12">
         <StepProgress steps={STEPS} current={step} color="amber" />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
 
           {/* Step 1 — Listing basics */}
           {step === 0 && (
@@ -100,11 +141,11 @@ export default function ListRoomPage() {
               <h2 className="font-bold text-slate-900 text-lg">Listing basics</h2>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Listing title <span className="text-red-500">*</span></label>
-                <input type="text" required placeholder="e.g. Sunny Private Room in Surry Hills Terrace" className={FIELD_CLASS} />
+                <input name="title" type="text" required placeholder="e.g. Sunny Private Room in Surry Hills Terrace" className={FIELD_CLASS} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Room type <span className="text-red-500">*</span></label>
-                <select required className={SELECT_CLASS}>
+                <select name="type" required className={SELECT_CLASS}>
                   <option value="">Select type</option>
                   <option value="private-room">Private room</option>
                   <option value="shared-room">Shared room</option>
@@ -114,7 +155,7 @@ export default function ListRoomPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Description <span className="text-red-500">*</span></label>
-                <textarea required rows={5} placeholder="Describe the room, property, housemates, and neighbourhood..." className={`${FIELD_CLASS} resize-none`} />
+                <textarea name="description" required rows={5} placeholder="Describe the room, property, housemates, and neighbourhood..." className={`${FIELD_CLASS} resize-none`} />
               </div>
 
               {/* Photo upload */}
@@ -167,16 +208,16 @@ export default function ListRoomPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Suburb <span className="text-red-500">*</span></label>
-                    <input type="text" required placeholder="e.g. Surry Hills" className={FIELD_CLASS} />
+                    <input name="suburb" type="text" required placeholder="e.g. Surry Hills" className={FIELD_CLASS} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">City <span className="text-red-500">*</span></label>
-                    <input type="text" required placeholder="e.g. Sydney" className={FIELD_CLASS} />
+                    <input name="city" type="text" required placeholder="e.g. Sydney" className={FIELD_CLASS} />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">State <span className="text-red-500">*</span></label>
-                  <select required className={SELECT_CLASS}>
+                  <select name="state" required className={SELECT_CLASS}>
                     <option value="">Select state</option>
                     {states.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -188,21 +229,21 @@ export default function ListRoomPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Weekly rent (AUD) <span className="text-red-500">*</span></label>
-                    <input type="number" required min={1} placeholder="e.g. 350" className={FIELD_CLASS} />
+                    <input name="rentWeekly" type="number" required min={1} placeholder="e.g. 350" className={FIELD_CLASS} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Bond (AUD) <span className="text-red-500">*</span></label>
-                    <input type="number" required min={0} placeholder="e.g. 1400" className={FIELD_CLASS} />
+                    <input name="bond" type="number" required min={0} placeholder="e.g. 1400" className={FIELD_CLASS} />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Available from <span className="text-red-500">*</span></label>
-                    <input type="date" required className={FIELD_CLASS} />
+                    <input name="availableFrom" type="date" required className={FIELD_CLASS} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Minimum stay <span className="text-red-500">*</span></label>
-                    <select required className={SELECT_CLASS}>
+                    <select name="minStayMonths" required className={SELECT_CLASS}>
                       <option value="">Select</option>
                       {[1, 2, 3, 6, 12].map((n) => (
                         <option key={n} value={n}>{n} month{n !== 1 ? "s" : ""}</option>
@@ -252,11 +293,11 @@ export default function ListRoomPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Your name <span className="text-red-500">*</span></label>
-                    <input type="text" required placeholder="e.g. Sarah Jenkins" className={FIELD_CLASS} />
+                    <input name="ownerName" type="text" required placeholder="e.g. Sarah Jenkins" className={FIELD_CLASS} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Email address <span className="text-red-500">*</span></label>
-                    <input type="email" required placeholder="you@example.com" className={FIELD_CLASS} />
+                    <input name="ownerEmail" type="email" required placeholder="you@example.com" className={FIELD_CLASS} />
                   </div>
                 </div>
                 <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">
@@ -280,9 +321,10 @@ export default function ListRoomPage() {
             )}
             <button
               type="submit"
-              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-xl transition-colors"
+              disabled={loading}
+              className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors"
             >
-              {step === STEPS.length - 1 ? "Submit listing" : `Next: ${STEPS[step + 1]}`}
+              {loading ? "Submitting…" : step === STEPS.length - 1 ? "Submit listing" : `Next: ${STEPS[step + 1]}`}
             </button>
             {step === 0 && (
               <Link href="/" className="px-6 py-3 border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold rounded-xl transition-colors text-sm">
