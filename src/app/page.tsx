@@ -8,7 +8,7 @@ import JobCard from "@/components/jobs/JobCard";
 import RoomCard from "@/components/rooms/RoomCard";
 import type { Job, Room } from "@/types";
 
-export const revalidate = 60; // ISR — revalidate every 60 seconds
+export const dynamic = "force-dynamic";
 
 const stats = [
   { value: "12,000+", label: "Active Jobs" },
@@ -36,29 +36,8 @@ const trustPoints = [
 ];
 
 async function getHomepageJobs(): Promise<Job[]> {
-  // Prefer featured jobs; fall back to latest 6
-  let rows = await db
-    .select({
-      id: jobs.id, slug: jobs.slug, title: jobs.title, description: jobs.description,
-      category: jobs.category, employmentType: jobs.employmentType,
-      salaryMin: jobs.salaryMin, salaryMax: jobs.salaryMax, currency: jobs.currency,
-      locationCity: jobs.locationCity, locationState: jobs.locationState, locationCountry: jobs.locationCountry,
-      workMode: jobs.workMode, visaSponsorship: jobs.visaSponsorship,
-      featured: jobs.featured, views: jobs.views, postedAt: jobs.postedAt, expiresAt: jobs.expiresAt,
-      company: {
-        id: companies.id, name: companies.name, logoUrl: companies.logoUrl, website: companies.website,
-        industry: companies.industry, size: companies.size, description: companies.description,
-        verified: companies.verified, city: companies.city,
-      },
-    })
-    .from(jobs)
-    .innerJoin(companies, eq(jobs.companyId, companies.id))
-    .where(eq(jobs.featured, true))
-    .orderBy(desc(jobs.postedAt))
-    .limit(6);
-
-  if (rows.length === 0) {
-    rows = await db
+  try {
+    let rows = await db
       .select({
         id: jobs.id, slug: jobs.slug, title: jobs.title, description: jobs.description,
         category: jobs.category, employmentType: jobs.employmentType,
@@ -74,51 +53,78 @@ async function getHomepageJobs(): Promise<Job[]> {
       })
       .from(jobs)
       .innerJoin(companies, eq(jobs.companyId, companies.id))
+      .where(eq(jobs.featured, true))
       .orderBy(desc(jobs.postedAt))
       .limit(6);
-  }
 
-  return await Promise.all(
-    rows.map(async (job) => {
-      const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, job.id));
-      return {
-        ...job,
-        postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
-        expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
-        company: { ...job.company, website: job.company.website ?? undefined },
-        skills: skills.map((s) => s.skill),
-      } as Job;
-    })
-  );
+    if (rows.length === 0) {
+      rows = await db
+        .select({
+          id: jobs.id, slug: jobs.slug, title: jobs.title, description: jobs.description,
+          category: jobs.category, employmentType: jobs.employmentType,
+          salaryMin: jobs.salaryMin, salaryMax: jobs.salaryMax, currency: jobs.currency,
+          locationCity: jobs.locationCity, locationState: jobs.locationState, locationCountry: jobs.locationCountry,
+          workMode: jobs.workMode, visaSponsorship: jobs.visaSponsorship,
+          featured: jobs.featured, views: jobs.views, postedAt: jobs.postedAt, expiresAt: jobs.expiresAt,
+          company: {
+            id: companies.id, name: companies.name, logoUrl: companies.logoUrl, website: companies.website,
+            industry: companies.industry, size: companies.size, description: companies.description,
+            verified: companies.verified, city: companies.city,
+          },
+        })
+        .from(jobs)
+        .innerJoin(companies, eq(jobs.companyId, companies.id))
+        .orderBy(desc(jobs.postedAt))
+        .limit(6);
+    }
+
+    return await Promise.all(
+      rows.map(async (job) => {
+        const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, job.id));
+        return {
+          ...job,
+          postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
+          expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
+          company: { ...job.company, website: job.company.website ?? undefined },
+          skills: skills.map((s) => s.skill),
+        } as Job;
+      })
+    );
+  } catch {
+    return [];
+  }
 }
 
 async function getHomepageRooms(): Promise<Room[]> {
-  // Prefer featured rooms; fall back to latest 6
-  let rows = await db
-    .select()
-    .from(rooms)
-    .where(eq(rooms.featured, true))
-    .orderBy(desc(rooms.postedAt))
-    .limit(6);
+  try {
+    let rows = await db
+      .select()
+      .from(rooms)
+      .where(eq(rooms.featured, true))
+      .orderBy(desc(rooms.postedAt))
+      .limit(6);
 
-  if (rows.length === 0) {
-    rows = await db.select().from(rooms).orderBy(desc(rooms.postedAt)).limit(6);
+    if (rows.length === 0) {
+      rows = await db.select().from(rooms).orderBy(desc(rooms.postedAt)).limit(6);
+    }
+
+    return await Promise.all(
+      rows.map(async (room) => {
+        const photos = await db
+          .select({ url: roomPhotos.url })
+          .from(roomPhotos)
+          .where(eq(roomPhotos.roomId, room.id))
+          .orderBy(roomPhotos.position);
+        return {
+          ...room,
+          postedAt: room.postedAt instanceof Date ? room.postedAt.toISOString() : (room.postedAt ?? ""),
+          photos: photos.map((p) => p.url),
+        } as Room;
+      })
+    );
+  } catch {
+    return [];
   }
-
-  return await Promise.all(
-    rows.map(async (room) => {
-      const photos = await db
-        .select({ url: roomPhotos.url })
-        .from(roomPhotos)
-        .where(eq(roomPhotos.roomId, room.id))
-        .orderBy(roomPhotos.position);
-      return {
-        ...room,
-        postedAt: room.postedAt instanceof Date ? room.postedAt.toISOString() : (room.postedAt ?? ""),
-        photos: photos.map((p) => p.url),
-      } as Room;
-    })
-  );
 }
 
 export default async function Home() {
