@@ -42,6 +42,7 @@ export const jobs = pgTable(
     companyId: text("company_id")
       .notNull()
       .references(() => companies.id),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
     title: text("title").notNull(),
     description: text("description").notNull(),
     category: text("category").notNull(),
@@ -183,5 +184,25 @@ export const applications = pgTable(
   (t) => ({
     uniq: uniqueIndex("applications_user_job_uniq").on(t.userId, t.jobId),
     statusIdx: index("applications_status_idx").on(t.status),
+  })
+);
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: text("id").primaryKey(),
+    applicationId: text("application_id")
+      .notNull()
+      .references(() => applications.id, { onDelete: "cascade" }),
+    senderId: text("sender_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    applicationIdx: index("messages_application_idx").on(t.applicationId),
+    senderIdx: index("messages_sender_idx").on(t.senderId),
   })
 );
