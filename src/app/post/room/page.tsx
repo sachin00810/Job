@@ -21,6 +21,7 @@ export default function ListRoomPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -30,6 +31,7 @@ export default function ListRoomPage() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         setPreviews((prev) => [...prev, ev.target?.result as string].slice(0, 6));
+        setPhotoFiles((prev) => [...prev, file].slice(0, 6));
       };
       reader.readAsDataURL(file);
     });
@@ -37,6 +39,7 @@ export default function ListRoomPage() {
 
   function removePhoto(index: number) {
     setPreviews((prev) => prev.filter((_, i) => i !== index));
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
   function next() {
@@ -73,9 +76,21 @@ export default function ListRoomPage() {
       genderPref: (fd.get("genderPref") as string) || "any",
       ownerName: fd.get("ownerName") as string,
       ownerEmail: fd.get("ownerEmail") as string,
-      photos: previews,
+      photos: [] as string[],
     };
     try {
+      if (photoFiles.length > 0) {
+        const uploadedUrls = await Promise.all(
+          photoFiles.map(async (file) => {
+            const fd = new FormData();
+            fd.append("file", file);
+            const r = await fetch("/api/upload", { method: "POST", body: fd });
+            const d = await r.json();
+            return d.url as string;
+          })
+        );
+        payload.photos = uploadedUrls;
+      }
       const res = await fetch("/api/rooms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (res.ok) {
         const { slug } = await res.json();
