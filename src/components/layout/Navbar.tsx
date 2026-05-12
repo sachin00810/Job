@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Briefcase, Menu, Search, X, Clock, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { Briefcase, Menu, Search, X, Clock, LayoutDashboard, LogOut, Settings, MessageSquare } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -78,6 +78,11 @@ function UserMenu() {
             className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
             <LayoutDashboard className="h-4 w-4 text-slate-400" />
             Dashboard
+          </Link>
+          <Link href="/dashboard/messages" onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <MessageSquare className="h-4 w-4 text-slate-400" />
+            Messages
           </Link>
           <Link href="/profile" onClick={() => setOpen(false)}
             className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
@@ -253,9 +258,14 @@ export function Navbar() {
                       );
                     })}
                     {session?.user && (
-                      <Link href="/profile" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-900 hover:text-indigo-600">
-                        Profile & Settings
-                      </Link>
+                      <>
+                        <Link href="/dashboard/messages" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-900 hover:text-indigo-600">
+                          Messages
+                        </Link>
+                        <Link href="/profile" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-900 hover:text-indigo-600">
+                          Profile & Settings
+                        </Link>
+                      </>
                     )}
                   </nav>
                   <div className="flex flex-col space-y-4 pt-6 border-t border-gray-200">

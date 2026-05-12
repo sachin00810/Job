@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Briefcase, Home, FileText, Bookmark, Clock, ChevronRight, CheckCircle2, Eye, XCircle, Star } from "lucide-react";
+import { Briefcase, Home, FileText, Bookmark, Clock, ChevronRight, CheckCircle2, Eye, XCircle, Star, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatSalaryRange, formatRent, formatDateRelative } from "@/lib/utils";
 import { JobCardSkeleton } from "@/components/jobs/JobCardSkeleton";
@@ -64,6 +64,7 @@ export default function DashboardPage() {
     { id: "applications" as Tab, label: "Applications", icon: FileText,  count: stats.applications },
   ];
 
+
   const displayName = user?.fullName ?? "Your Account";
   const displayEmail = user?.email ?? "";
   const avatarUrl = user?.avatarUrl ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
@@ -78,10 +79,14 @@ export default function DashboardPage() {
               {displayName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold">{displayName}</h1>
             <p className="text-indigo-200 text-sm mt-0.5">{displayEmail}</p>
           </div>
+          <Link href="/dashboard/messages" className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors">
+            <MessageSquare className="h-4 w-4" />
+            Messages
+          </Link>
         </div>
       </div>
 
