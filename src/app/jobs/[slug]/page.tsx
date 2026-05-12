@@ -40,8 +40,13 @@ async function getJob(slug: string) {
 }
 
 export async function generateStaticParams() {
-  const rows = await db.select({ slug: jobsTable.slug }).from(jobsTable);
-  return rows.map((r) => ({ slug: r.slug }));
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const rows = await db.select({ slug: jobsTable.slug }).from(jobsTable);
+    return rows.map((r) => ({ slug: r.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
