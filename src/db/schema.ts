@@ -109,6 +109,7 @@ export const rooms = pgTable(
     smokingAllowed: boolean("smoking_allowed").notNull().default(false),
     genderPref: text("gender_pref").notNull().default("any"),
     ownerName: text("owner_name").notNull(),
+    ownerEmail: text("owner_email"),
     ownerAvatar: text("owner_avatar").notNull(),
     featured: boolean("featured").notNull().default(false),
     postedAt: timestamp("posted_at").notNull().defaultNow(),
@@ -204,5 +205,20 @@ export const messages = pgTable(
   (t) => ({
     applicationIdx: index("messages_application_idx").on(t.applicationId),
     senderIdx: index("messages_sender_idx").on(t.senderId),
+  })
+);
+
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    token: text("token").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    userIdIdx: index("prt_user_id_idx").on(t.userId),
   })
 );

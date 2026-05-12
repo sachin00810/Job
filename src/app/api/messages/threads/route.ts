@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { messages, applications, jobs, companies, users } from "@/db/schema";
+import { applications, jobs, companies, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 // GET /api/messages/threads — returns all application threads the user is part of

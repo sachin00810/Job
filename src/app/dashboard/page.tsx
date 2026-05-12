@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Briefcase, Home, FileText, Bookmark, Clock, ChevronRight, CheckCircle2, Eye, XCircle, Star, MessageSquare } from "lucide-react";
+import { Briefcase, Home, FileText, Bookmark, Clock, ChevronRight, CheckCircle2, Eye, XCircle, Star, MessageSquare, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatSalaryRange, formatRent, formatDateRelative } from "@/lib/utils";
 import { JobCardSkeleton } from "@/components/jobs/JobCardSkeleton";
 import { RoomCardSkeleton } from "@/components/rooms/RoomCardSkeleton";
 import type { Job, Room } from "@/types";
 
-type Tab = "overview" | "saved-jobs" | "saved-rooms" | "applications";
+type Tab = "overview" | "saved-jobs" | "saved-rooms" | "applications" | "my-postings";
 
 interface Application {
   id: string;
@@ -21,6 +21,28 @@ interface Application {
   jobCity: string;
   companyName: string;
   companyLogo: string;
+}
+
+interface EmployerApplicant {
+  id: string;
+  status: string;
+  appliedAt: string;
+  coverLetter: string;
+  applicant: { id: string; fullName: string; email: string; avatarUrl?: string | null };
+}
+
+interface EmployerJob {
+  id: string;
+  slug: string;
+  title: string;
+  locationCity: string;
+  locationState: string;
+  employmentType: string;
+  views: number;
+  postedAt: string;
+  applicationCount: number;
+  applications: EmployerApplicant[];
+  company: { name: string; logoUrl: string };
 }
 
 interface DashboardData {
@@ -43,6 +65,10 @@ export default function DashboardPage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [employerJobs, setEmployerJobs] = useState<EmployerJob[]>([]);
+  const [employerLoading, setEmployerLoading] = useState(false);
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [updatingApp, setUpdatingApp] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -50,6 +76,39 @@ export default function DashboardPage() {
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (tab === "my-postings" && employerJobs.length === 0) {
+      setEmployerLoading(true);
+      fetch("/api/dashboard/employer")
+        .then((r) => r.json())
+        .then((d) => { setEmployerJobs(d.jobs ?? []); setEmployerLoading(false); })
+        .catch(() => setEmployerLoading(false));
+    }
+  }, [tab]);
+
+  async function updateApplicationStatus(appId: string, status: string) {
+    setUpdatingApp(appId);
+    try {
+      const res = await fetch(`/api/applications/${appId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        setEmployerJobs((prev) =>
+          prev.map((job) => ({
+            ...job,
+            applications: job.applications.map((a) =>
+              a.id === appId ? { ...a, status } : a
+            ),
+          }))
+        );
+      }
+    } finally {
+      setUpdatingApp(null);
+    }
+  }
 
   const user = data?.user;
   const savedJobs = data?.savedJobs ?? [];
@@ -62,6 +121,7 @@ export default function DashboardPage() {
     { id: "saved-jobs" as Tab,   label: "Saved Jobs",   icon: Bookmark,  count: stats.savedJobs },
     { id: "saved-rooms" as Tab,  label: "Saved Rooms",  icon: Home,      count: stats.savedRooms },
     { id: "applications" as Tab, label: "Applications", icon: FileText,  count: stats.applications },
+    ...(user?.role === "employer" ? [{ id: "my-postings" as Tab, label: "My Postings", icon: Users }] : []),
   ];
 
 
@@ -233,6 +293,96 @@ export default function DashboardPage() {
                     </Link>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        )}
+        {/* My Postings — Employer Only */}
+        {tab === "my-postings" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-slate-900">My Job Postings</h2>
+              <Link href="/post/job" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors">
+                + Post a job
+              </Link>
+            </div>
+            {employerLoading ? (
+              <div className="space-y-4">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-20 bg-white rounded-xl border border-slate-200 animate-pulse" />)}</div>
+            ) : employerJobs.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
+                <Briefcase className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">No jobs posted yet.</p>
+                <Link href="/post/job" className="mt-4 inline-block text-sm text-indigo-600 hover:underline font-medium">Post your first job →</Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {employerJobs.map((job) => (
+                  <div key={job.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <button
+                      onClick={() => setExpandedJob(expandedJob === job.id ? null : job.id)}
+                      className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={job.company.logoUrl} alt={job.company.name} />
+                          <AvatarFallback className="text-xs font-semibold">{job.company.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-semibold text-slate-900">{job.title}</div>
+                          <div className="text-sm text-slate-500">{job.locationCity} · {job.employmentType.replace("-", " ")} · {job.views} views</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-indigo-600">{job.applicationCount} application{job.applicationCount !== 1 ? "s" : ""}</span>
+                        {expandedJob === job.id ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                      </div>
+                    </button>
+
+                    {expandedJob === job.id && (
+                      <div className="border-t border-slate-100 divide-y divide-slate-100">
+                        {job.applications.length === 0 ? (
+                          <div className="py-8 text-center text-slate-500 text-sm">No applications yet for this job.</div>
+                        ) : (
+                          job.applications.map((app) => {
+                            const cfg = STATUS_CONFIG[app.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.applied;
+                            const Icon = cfg.icon;
+                            return (
+                              <div key={app.id} className="flex items-center justify-between px-5 py-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage src={app.applicant.avatarUrl ?? undefined} alt={app.applicant.fullName} />
+                                    <AvatarFallback className="text-xs">{app.applicant.fullName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <div className="text-sm font-medium text-slate-900">{app.applicant.fullName}</div>
+                                    <div className="text-xs text-slate-500">{app.applicant.email} · Applied {formatDateRelative(app.appliedAt)}</div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${cfg.color}`}>
+                                    <Icon className="h-3 w-3" />{cfg.label}
+                                  </span>
+                                  <select
+                                    value={app.status}
+                                    disabled={updatingApp === app.id}
+                                    onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
+                                    className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                                  >
+                                    <option value="applied">Applied</option>
+                                    <option value="viewed">Viewed</option>
+                                    <option value="shortlisted">Shortlisted</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="hired">Hired</option>
+                                  </select>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>

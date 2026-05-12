@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { jobs, companies, jobSkills } from "@/db/schema";
-import { and, eq, gte, ilike, or, desc, asc, count } from "drizzle-orm";
+import { and, eq, gte, gt, ilike, isNull, or, desc, asc, count, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { createJobSchema } from "@/lib/validations";
 
@@ -29,6 +29,8 @@ export async function GET(req: NextRequest) {
   if (visaOnly) conditions.push(eq(jobs.visaSponsorship, true));
   if (location) conditions.push(or(ilike(jobs.locationCity, `%${location}%`), ilike(jobs.locationState, `%${location}%`)));
   if (featuredOnly) conditions.push(eq(jobs.featured, true));
+  // Always exclude expired jobs (only filter if expiresAt is set)
+  conditions.push(or(isNull(jobs.expiresAt), gt(jobs.expiresAt, new Date()))!);
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -79,18 +81,22 @@ export async function GET(req: NextRequest) {
     db.select({ total: count() }).from(jobs).innerJoin(companies, eq(jobs.companyId, companies.id)).where(where),
   ]);
 
-  const jobsWithSkills = await Promise.all(
-    rows.map(async (job) => {
-      const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, job.id));
-      return {
-        ...job,
-        postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
-        expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
-        company: { ...job.company, website: job.company.website ?? undefined },
-        skills: skills.map((s) => s.skill),
-      };
-    })
-  );
+  const jobIds = rows.map((r) => r.id);
+  const allSkills = jobIds.length > 0
+    ? await db.select({ jobId: jobSkills.jobId, skill: jobSkills.skill }).from(jobSkills).where(inArray(jobSkills.jobId, jobIds))
+    : [];
+  const skillsByJobId = allSkills.reduce<Record<string, string[]>>((acc, s) => {
+    (acc[s.jobId] ??= []).push(s.skill);
+    return acc;
+  }, {});
+
+  const jobsWithSkills = rows.map((job) => ({
+    ...job,
+    postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
+    expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
+    company: { ...job.company, website: job.company.website ?? undefined },
+    skills: skillsByJobId[job.id] ?? [],
+  }));
 
   return NextResponse.json({
     jobs: jobsWithSkills,

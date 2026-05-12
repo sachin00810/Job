@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { rooms, roomPhotos } from "@/db/schema";
-import { and, eq, lte, ilike, or, desc, asc, count } from "drizzle-orm";
+import { and, eq, lte, ilike, or, desc, asc, count, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { createRoomSchema } from "@/lib/validations";
 
@@ -44,20 +44,20 @@ export async function GET(req: NextRequest) {
     db.select({ total: count() }).from(rooms).where(where),
   ]);
 
-  const roomsWithPhotos = await Promise.all(
-    rows.map(async (room) => {
-      const photos = await db
-        .select({ url: roomPhotos.url })
-        .from(roomPhotos)
-        .where(eq(roomPhotos.roomId, room.id))
-        .orderBy(roomPhotos.position);
-      return {
-        ...room,
-        postedAt: room.postedAt instanceof Date ? room.postedAt.toISOString() : (room.postedAt ?? ""),
-        photos: photos.map((p) => p.url),
-      };
-    })
-  );
+  const roomIds = rows.map((r) => r.id);
+  const allPhotos = roomIds.length > 0
+    ? await db.select({ roomId: roomPhotos.roomId, url: roomPhotos.url }).from(roomPhotos).where(inArray(roomPhotos.roomId, roomIds)).orderBy(roomPhotos.position)
+    : [];
+  const photosByRoomId = allPhotos.reduce<Record<string, string[]>>((acc, p) => {
+    (acc[p.roomId] ??= []).push(p.url);
+    return acc;
+  }, {});
+
+  const roomsWithPhotos = rows.map((room) => ({
+    ...room,
+    postedAt: room.postedAt instanceof Date ? room.postedAt.toISOString() : (room.postedAt ?? ""),
+    photos: photosByRoomId[room.id] ?? [],
+  }));
 
   return NextResponse.json({
     rooms: roomsWithPhotos,
@@ -102,6 +102,7 @@ export async function POST(req: NextRequest) {
     smokingAllowed: d.smokingAllowed ?? false,
     genderPref: d.genderPref ?? "any",
     ownerName: d.ownerName,
+    ownerEmail: d.ownerEmail,
     ownerAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(d.ownerName)}`,
     featured: false,
   });

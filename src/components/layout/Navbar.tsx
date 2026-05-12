@@ -4,12 +4,10 @@ import Link from "next/link";
 import { Briefcase, Menu, Search, X, Clock, LayoutDashboard, LogOut, Settings, MessageSquare } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { jobs } from "@/data/jobs";
-import { rooms } from "@/data/rooms";
 
 const STORAGE_KEY = "appname_recent_searches";
 const MAX_RECENT = 5;
@@ -113,6 +111,7 @@ export function Navbar() {
   const [searchTab, setSearchTab] = useState<"jobs" | "rooms">("jobs");
   const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<{ query: string; tab: "jobs" | "rooms" }[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const navLinks = [
@@ -161,19 +160,31 @@ export function Navbar() {
     runSearch(query, searchTab);
   }
 
-  const suggestions = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (q.length < 2) return [];
-    if (searchTab === "jobs") {
-      const titles = jobs.filter((j) => j.title.toLowerCase().includes(q)).map((j) => j.title);
-      const companies = jobs.filter((j) => j.company.name.toLowerCase().includes(q)).map((j) => j.company.name);
-      return Array.from(new Set([...titles, ...companies])).slice(0, 5);
-    } else {
-      const suburbs = rooms
-        .filter((r) => r.suburb.toLowerCase().includes(q) || r.city.toLowerCase().includes(q))
-        .map((r) => `${r.suburb}, ${r.city}`);
-      return Array.from(new Set(suburbs)).slice(0, 5);
-    }
+  // Debounced API autocomplete
+  useEffect(() => {
+    if (query.trim().length < 2) { setSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        if (searchTab === "jobs") {
+          const res = await fetch(`/api/jobs?q=${encodeURIComponent(query.trim())}&limit=5`);
+          const data = await res.json();
+          const items: string[] = Array.from(
+            new Set((data.jobs ?? []).flatMap((j: { title: string; company: { name: string } }) => [j.title, j.company.name]))
+          ).slice(0, 5) as string[];
+          setSuggestions(items);
+        } else {
+          const res = await fetch(`/api/rooms?location=${encodeURIComponent(query.trim())}&limit=5`);
+          const data = await res.json();
+          const items: string[] = Array.from(
+            new Set((data.rooms ?? []).map((r: { suburb: string; city: string }) => `${r.suburb}, ${r.city}`))
+          ).slice(0, 5) as string[];
+          setSuggestions(items);
+        }
+      } catch {
+        setSuggestions([]);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
   }, [query, searchTab]);
 
   return (

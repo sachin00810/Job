@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { savedJobs, savedRooms, applications, jobs, rooms, companies, jobSkills, roomPhotos, users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 
 export async function GET() {
@@ -70,33 +70,37 @@ export async function GET() {
       .where(eq(applications.userId, userId)),
   ]);
 
-  const savedJobsWithSkills = await Promise.all(
-    savedJobRows.map(async (job) => {
-      const skills = await db.select({ skill: jobSkills.skill }).from(jobSkills).where(eq(jobSkills.jobId, job.id));
-      return {
-        ...job,
-        postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
-        expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
-        company: { ...job.company, website: job.company.website ?? undefined },
-        skills: skills.map((s) => s.skill),
-      };
-    })
-  );
+  const savedJobIds = savedJobRows.map((j) => j.id);
+  const allJobSkills = savedJobIds.length > 0
+    ? await db.select({ jobId: jobSkills.jobId, skill: jobSkills.skill }).from(jobSkills).where(inArray(jobSkills.jobId, savedJobIds))
+    : [];
+  const skillsByJobId = allJobSkills.reduce<Record<string, string[]>>((acc, s) => {
+    (acc[s.jobId] ??= []).push(s.skill);
+    return acc;
+  }, {});
 
-  const savedRoomsWithPhotos = await Promise.all(
-    savedRoomRows.map(async (row) => {
-      const photos = await db
-        .select({ url: roomPhotos.url })
-        .from(roomPhotos)
-        .where(eq(roomPhotos.roomId, row.rooms.id))
-        .orderBy(roomPhotos.position);
-      return {
-        ...row.rooms,
-        postedAt: row.rooms.postedAt instanceof Date ? row.rooms.postedAt.toISOString() : (row.rooms.postedAt ?? ""),
-        photos: photos.map((p) => p.url),
-      };
-    })
-  );
+  const savedJobsWithSkills = savedJobRows.map((job) => ({
+    ...job,
+    postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : (job.postedAt ?? ""),
+    expiresAt: job.expiresAt instanceof Date ? job.expiresAt.toISOString() : (job.expiresAt ?? ""),
+    company: { ...job.company, website: job.company.website ?? undefined },
+    skills: skillsByJobId[job.id] ?? [],
+  }));
+
+  const savedRoomIds = savedRoomRows.map((r) => r.rooms.id);
+  const allRoomPhotos = savedRoomIds.length > 0
+    ? await db.select({ roomId: roomPhotos.roomId, url: roomPhotos.url }).from(roomPhotos).where(inArray(roomPhotos.roomId, savedRoomIds)).orderBy(roomPhotos.position)
+    : [];
+  const photosByRoomId = allRoomPhotos.reduce<Record<string, string[]>>((acc, p) => {
+    (acc[p.roomId] ??= []).push(p.url);
+    return acc;
+  }, {});
+
+  const savedRoomsWithPhotos = savedRoomRows.map((row) => ({
+    ...row.rooms,
+    postedAt: row.rooms.postedAt instanceof Date ? row.rooms.postedAt.toISOString() : (row.rooms.postedAt ?? ""),
+    photos: photosByRoomId[row.rooms.id] ?? [],
+  }));
 
   const serializedApplications = applicationRows.map((row) => ({
     ...row,

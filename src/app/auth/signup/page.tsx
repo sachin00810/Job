@@ -32,6 +32,7 @@ export default function SignUpPage() {
         fullName: form.get("fullName"),
         email: form.get("email"),
         password,
+        role: form.get("role"),
       }),
     });
 
@@ -73,6 +74,23 @@ export default function SignUpPage() {
                 {error}
               </div>
             )}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">I am a</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: "seeker", label: "Job Seeker" },
+                  { value: "employer", label: "Employer" },
+                  { value: "landlord", label: "Landlord" },
+                ].map(({ value, label }) => (
+                  <label key={value} className="relative cursor-pointer">
+                    <input type="radio" name="role" value={value} defaultChecked={value === "seeker"} className="sr-only peer" required />
+                    <div className="border border-slate-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 rounded-xl px-3 py-2.5 text-center text-sm font-medium text-slate-600 peer-checked:text-indigo-700 transition-colors">
+                      {label}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Full name</label>
               <input

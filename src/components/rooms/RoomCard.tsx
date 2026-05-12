@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Heart } from "lucide-react";
+import { MapPin, Heart, Home } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatRent } from "@/lib/utils";
 import type { Room } from "@/types";
@@ -37,14 +37,20 @@ export default function RoomCard({ room }: RoomCardProps) {
   return (
     <div className="relative rounded-xl overflow-hidden border border-slate-200 hover:shadow-lg transition-shadow group">
       {/* Photo */}
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <Image
-          src={room.photos[0]}
-          alt={room.title}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        {room.photos[0] ? (
+          <Image
+            src={room.photos[0]}
+            alt={room.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Home className="h-12 w-12 text-slate-300" />
+          </div>
+        )}
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
           {fresh && (
             <span className="bg-green-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full">

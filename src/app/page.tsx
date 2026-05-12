@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ShieldCheck, Zap, Users } from "lucide-react";
 import { db } from "@/db";
 import { jobs, companies, jobSkills, rooms, roomPhotos } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, gt, isNull, or, and } from "drizzle-orm";
 import { HeroSearch } from "@/components/home/HeroSearch";
 import JobCard from "@/components/jobs/JobCard";
 import RoomCard from "@/components/rooms/RoomCard";
@@ -53,7 +53,10 @@ async function getHomepageJobs(): Promise<Job[]> {
       })
       .from(jobs)
       .innerJoin(companies, eq(jobs.companyId, companies.id))
-      .where(eq(jobs.featured, true))
+      .where(and(
+        eq(jobs.featured, true),
+        or(isNull(jobs.expiresAt), gt(jobs.expiresAt, new Date()))!
+      ))
       .orderBy(desc(jobs.postedAt))
       .limit(6);
 
@@ -74,6 +77,7 @@ async function getHomepageJobs(): Promise<Job[]> {
         })
         .from(jobs)
         .innerJoin(companies, eq(jobs.companyId, companies.id))
+        .where(or(isNull(jobs.expiresAt), gt(jobs.expiresAt, new Date()))!)
         .orderBy(desc(jobs.postedAt))
         .limit(6);
     }
