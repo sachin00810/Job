@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { applications, jobs, companies, jobSkills } from "@/db/schema";
+import { applications, messages, jobs, companies, jobSkills } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { z } from "zod";
@@ -8,6 +8,7 @@ import { z } from "zod";
 const applySchema = z.object({
   jobId: z.string().min(1),
   coverLetter: z.string().optional(),
+  message: z.string().optional(),
 });
 
 export async function GET() {
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
   const userId = session.user.id;
-  const { jobId, coverLetter } = parsed.data;
+  const { jobId, coverLetter, message } = parsed.data;
 
   const [existing] = await db
     .select()
@@ -98,8 +99,13 @@ export async function POST(req: NextRequest) {
 
   if (existing) return NextResponse.json({ error: "Already applied" }, { status: 409 });
 
-  const id = `app-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-  await db.insert(applications).values({ id, jobId, userId, coverLetter: coverLetter ?? "", status: "applied" });
+  const appId = `app-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  await db.insert(applications).values({ id: appId, jobId, userId, coverLetter: coverLetter ?? "", status: "applied" });
 
-  return NextResponse.json({ success: true }, { status: 201 });
+  if (message?.trim()) {
+    const msgId = `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    await db.insert(messages).values({ id: msgId, applicationId: appId, senderId: userId, content: message.trim() });
+  }
+
+  return NextResponse.json({ success: true, applicationId: appId }, { status: 201 });
 }

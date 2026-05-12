@@ -143,6 +143,7 @@ export async function POST(req: NextRequest) {
     visaSponsorship: d.visaSponsorship ?? false,
     featured: false,
     views: 0,
+    userId: session.user.id ?? null,
   });
 
   if (d.skills?.length) {
